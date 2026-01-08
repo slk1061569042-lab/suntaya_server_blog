@@ -1,0 +1,7 @@
+# Python 远程 Docker 控制工具依赖
+# 实际上不需要额外依赖，只使用 Python 标准库
+
+# 如果需要添加功能，可以考虑以下依赖：
+# paramiko>=2.9.0  # 如果需要纯 Python SSH 实现
+# docker>=6.0.0    # 如果需要 Docker API 支持
+

@@ -1,0 +1,15 @@
+# 在 ECS Terminal 中执行以下命令（一行一行执行）
+
+# 1. 确保目录存在并设置权限
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+
+# 2. 添加公钥到 authorized_keys（复制下面整行命令，包括引号）
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC+2DKZkwKze9u06ul2pIPwHkD3HoXgaAoFxzeGw6hCkmTHNivMzJhoenHbHS4bBTDZlbZJZ2fsSPOxNvrUKGE/yWr70LrEFYfFUhu1Mw3rkRDY0b2xaF9KvPCneBuJ7bWMcD1uLGML32/IUQwrN0iMVv9sKVLEN24iInWk0JIznsIR2db2v7l5zuh8FOnC1LnjlerMw+YkNlI+qSXUGoDrFYdSJnaqjJB0vfsJXjooUfxbfP1TUo+c/y/ksnKXR2Nma+wk50os/Z4JD7H/aJCuvS2129qcwwx5ZTu9nVCoBCyDRixtZfL/Zt076YcurxIl3FDrHKQQgSOtmG9z76mxMCYIY/vFHn/2AfEPqi0nrMycoYCBcuEYrPQico1p6DPULKC0j+AFKSail7cwNKdl5euY0eudPmB3DYA9TgCppB+u1IvhZUQTMXocGynqhF97Ft7fPDp/NTGjawxatq8Vj2LDm1dMINzed2shCrvFC7JjQiOXvwBSdJRQeJBSXCU= 1061569042@qq.com" >> ~/.ssh/authorized_keys
+
+# 3. 设置 authorized_keys 文件权限
+chmod 600 ~/.ssh/authorized_keys
+
+# 4. 验证公钥已添加（应该能看到你的公钥）
+cat ~/.ssh/authorized_keys
+
