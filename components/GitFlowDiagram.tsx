@@ -211,6 +211,10 @@ export default function GitFlowDiagram() {
       ...prev,
       remoteRepo: [...prev.remoteRepo, newFile].filter((f, i, arr) => arr.indexOf(f) === i),
       fileCounter: prev.fileCounter + 1,
+      // 为新文件添加编辑状态记录
+      fileEditStates: prev.fileEditStates.some(f => f.fileName === newFile)
+        ? prev.fileEditStates
+        : [...prev.fileEditStates, { fileName: newFile, editLabel: null }],
     }));
   };
 
@@ -302,16 +306,10 @@ export default function GitFlowDiagram() {
   };
 
   const handleAddAll = () => {
-    // git add -A 可以添加：
+    // git add -A 可以添加所有可添加的文件：
     // 1. 新文件（不在本地仓库的文件）
-    // 2. 已跟踪但被修改的文件（在本地仓库但不在暂存区的文件）
-    const newFiles = state.workingDir.filter(
-      f => !state.stagingArea.includes(f) && !state.localRepo.includes(f)
-    );
-    const modifiedFiles = state.workingDir.filter(
-      f => !state.stagingArea.includes(f) && state.localRepo.includes(f)
-    );
-    const filesToAdd = [...newFiles, ...modifiedFiles];
+    // 2. 已跟踪但被修改的文件（在本地仓库且有编辑状态的文件）
+    const filesToAdd = state.workingDir.filter(f => canAddToStaging(f));
     
     if (filesToAdd.length === 0) {
       setCurrentOperation('idle');
@@ -324,6 +322,10 @@ export default function GitFlowDiagram() {
         setState(prev => ({
           ...prev,
           stagingArea: [...prev.stagingArea, file].filter((f, i, arr) => arr.indexOf(f) === i),
+          // 添加到暂存区后，清除编辑状态
+          fileEditStates: prev.fileEditStates.map(f =>
+            f.fileName === file ? { ...f, editLabel: null } : f
+          ),
         }));
         if (index === filesToAdd.length - 1) {
           setCurrentOperation('idle');
@@ -1065,7 +1067,7 @@ export default function GitFlowDiagram() {
 
                   {/* 向右箭头 */}
                   <div className="flex-shrink-0">
-                    <Arrow direction="right" isActive={currentOperation === 'add'} />
+                    <Arrow direction="right" isActive={currentOperation === 'add' || currentOperation === 'add-all'} />
                   </div>
 
                   {/* 暂存区 */}
