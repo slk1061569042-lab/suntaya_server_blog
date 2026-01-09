@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>技术演讲稿生成器</title>
+    
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 550px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .preview-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .preview-section.show {
+            display: block;
+        }
+        
+        .slide-preview {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-left: 4px solid #f5576c;
+            border-radius: 4px;
+        }
+        
+        .slide-number {
+            font-weight: 600;
+            color: #f5576c;
+            margin-bottom: 5px;
+        }
+        
+        .slide-content {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .options-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .option-item {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .option-item:hover {
+            border-color: #f5576c;
+        }
+        
+        .option-item.selected {
+            border-color: #f5576c;
+            background: #fff0f2;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 技术演讲稿生成器</h1>
+        <p class="subtitle">根据技术实现自动生成完整的 PowerPoint 演讲稿</p>
+        
+        <div class="form-group">
+            <label>演讲主题</label>
+            <input type="text" id="topic" placeholder="例如：微服务架构设计与实践" value="微服务架构设计与实践">
+        </div>
+        
+        <div class="form-group">
+            <label>技术实现描述</label>
+            <textarea id="techDescription" placeholder="描述你的技术实现，例如：&#10;&#10;我们构建了一个基于 Spring Cloud 的微服务电商平台。系统采用 API Gateway 作为统一入口，包含用户服务、订单服务、支付服务等核心模块。使用 Nacos 作为服务注册中心，RocketMQ 处理异步消息，MySQL 集群存储数据，Redis 提供缓存。前端采用 React + TypeScript，通过 Docker 容器化部署在 Kubernetes 集群上。">我们构建了一个基于 Spring Cloud 的微服务电商平台。
+
+系统采用 API Gateway 作为统一入口，包含以下核心服务：
+- 用户服务：处理用户注册、登录、权限管理
+- 订单服务：处理订单创建、查询、状态更新
+- 支付服务：集成支付宝、微信支付
+- 商品服务：商品信息管理、库存管理
+
+技术栈：
+- 后端：Spring Cloud、Spring Boot、MyBatis
+- 中间件：Nacos（注册中心）、RocketMQ（消息队列）
+- 数据库：MySQL 主从集群、Redis 缓存
+- 前端：React + TypeScript + Ant Design
+- 部署：Docker + Kubernetes
+
+系统特点：
+1. 服务解耦，独立部署
+2. 高可用，支持水平扩展
+3. 统一配置管理
+4. 分布式事务处理</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>演讲时长</label>
+            <div class="options-group">
+                <div class="option-item" data-duration="5">5 分钟</div>
+                <div class="option-item selected" data-duration="10">10 分钟</div>
+                <div class="option-item" data-duration="20">20 分钟</div>
+                <div class="option-item" data-duration="30">30 分钟</div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeArchitecture" checked>
+                <label for="includeArchitecture">包含架构图</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeCode" checked>
+                <label for="includeCode">包含代码示例</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeDemo" checked>
+                <label for="includeDemo">包含演示步骤</label>
+            </div>
+        </div>
+        
+        <button class="btn" id="generateBtn">🚀 生成完整演讲稿</button>
+        
+        <div class="preview-section" id="preview">
+            <div class="slide-preview" id="previewContent"></div>
+        </div>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        let selectedDuration = 10;
+        
+        Office.onReady((info) => {
+            if (info.host === Office.HostType.PowerPoint) {
+                console.log('PowerPoint 演讲稿生成器已加载');
+                
+                // 时长选择
+                document.querySelectorAll('.option-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        document.querySelectorAll('.option-item').forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                        selectedDuration = parseInt(item.dataset.duration);
+                    });
+                });
+                
+                // 生成按钮
+                document.getElementById('generateBtn').addEventListener('click', generatePresentation);
+            }
+        });
+        
+        async function generatePresentation() {
+            const btn = document.getElementById('generateBtn');
+            const status = document.getElementById('status');
+            const preview = document.getElementById('preview');
+            const previewContent = document.getElementById('previewContent');
+            
+            btn.disabled = true;
+            status.className = 'status';
+            status.textContent = '正在生成演讲稿...';
+            status.classList.add('success');
+            
+            const topic = document.getElementById('topic').value;
+            const techDescription = document.getElementById('techDescription').value;
+            const includeArchitecture = document.getElementById('includeArchitecture').checked;
+            const includeCode = document.getElementById('includeCode').checked;
+            const includeDemo = document.getElementById('includeDemo').checked;
+            
+            try {
+                // 生成幻灯片内容
+                const slides = generateSlides(topic, techDescription, selectedDuration, {
+                    includeArchitecture,
+                    includeCode,
+                    includeDemo
+                });
+                
+                // 显示预览
+                showPreview(slides, previewContent);
+                preview.classList.add('show');
+                
+                // 插入到 PowerPoint
+                await insertSlidesToPowerPoint(slides);
+                
+                status.textContent = `✅ 成功生成 ${slides.length} 张幻灯片！`;
+                status.classList.remove('error');
+                status.classList.add('success');
+            } catch (error) {
+                status.textContent = '❌ 错误: ' + error.message;
+                status.classList.remove('success');
+                status.classList.add('error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        
+        function generateSlides(topic, techDescription, duration, options) {
+            const slides = [];
+            
+            // 根据时长决定幻灯片数量
+            let slideCount = Math.floor(duration / 2); // 每2分钟一张幻灯片
+            slideCount = Math.max(5, Math.min(15, slideCount)); // 5-15张
+            
+            // 第1张：封面
+            slides.push({
+                title: topic,
+                content: `演讲主题：${topic}\n\n技术实现自动生成演讲稿`,
+                type: 'cover'
+            });
+            
+            // 第2张：目录
+            slides.push({
+                title: '目录',
+                content: '1. 项目背景\n2. 技术架构\n3. 核心功能\n4. 技术亮点\n5. 演示与总结',
+                type: 'toc'
+            });
+            
+            // 第3张：项目背景
+            slides.push({
+                title: '项目背景',
+                content: `项目概述：\n${extractSummary(techDescription)}\n\n业务价值：\n解决传统单体架构的扩展性问题，提升系统可用性和开发效率。`,
+                type: 'content'
+            });
+            
+            // 第4张：技术架构
+            if (options.includeArchitecture) {
+                slides.push({
+                    title: '技术架构',
+                    content: generateArchitectureContent(techDescription),
+                    type: 'architecture'
+                });
+            }
+            
+            // 第5-8张：核心功能模块
+            const modules = extractModules(techDescription);
+            modules.slice(0, 4).forEach((module, index) => {
+                slides.push({
+                    title: `核心功能 ${index + 1}`,
+                    content: `${module.name}\n\n${module.description}\n\n技术实现：\n${module.tech || '基于 Spring Cloud 微服务架构'}`,
+                    type: 'content'
+                });
+            });
+            
+            // 技术栈
+            slides.push({
+                title: '技术栈',
+                content: generateTechStack(techDescription),
+                type: 'content'
+            });
+            
+            // 代码示例
+            if (options.includeCode) {
+                slides.push({
+                    title: '代码示例',
+                    content: generateCodeExample(techDescription),
+                    type: 'code'
+                });
+            }
+            
+            // 系统特点
+            slides.push({
+                title: '系统特点',
+                content: generateFeatures(techDescription),
+                type: 'content'
+            });
+            
+            // 演示步骤
+            if (options.includeDemo) {
+                slides.push({
+                    title: '演示步骤',
+                    content: generateDemoSteps(modules),
+                    type: 'content'
+                });
+            }
+            
+            // 最后一张：总结
+            slides.push({
+                title: '总结',
+                content: `技术亮点：\n${generateHighlights(techDescription)}\n\n未来规划：\n持续优化性能，扩展更多业务功能`,
+                type: 'content'
+            });
+            
+            return slides.slice(0, slideCount);
+        }
+        
+        function extractSummary(text) {
+            const sentences = text.split(/[。\n]/).filter(s => s.trim().length > 10);
+            return sentences.slice(0, 2).join('。') || '基于微服务架构的现代化系统';
+        }
+        
+        function extractModules(text) {
+            const modules = [];
+            const lines = text.split('\n');
+            
+            lines.forEach(line => {
+                if (line.includes('服务') || line.includes('模块')) {
+                    const match = line.match(/([^：:]+)[：:](.+)/);
+                    if (match) {
+                        modules.push({
+                            name: match[1].trim(),
+                            description: match[2].trim()
+                        });
+                    }
+                }
+            });
+            
+            // 如果没有找到，生成默认模块
+            if (modules.length === 0) {
+                modules.push(
+                    { name: '用户服务', description: '处理用户相关业务逻辑' },
+                    { name: '订单服务', description: '处理订单创建和管理' },
+                    { name: '支付服务', description: '集成第三方支付' },
+                    { name: '商品服务', description: '商品信息管理' }
+                );
+            }
+            
+            return modules;
+        }
+        
+        function generateArchitectureContent(text) {
+            return `架构设计：\n\n┌─────────────┐\n│ API Gateway │\n└──────┬──────┘\n      │\n  ┌───┴───┐\n  │ 服务层 │\n  └───┬───┘\n      │\n  ┌───┴───┐\n  │ 数据层 │\n  └───────┘\n\n采用微服务架构，实现服务解耦和独立部署`;
+        }
+        
+        function generateTechStack(text) {
+            const techs = [];
+            if (text.includes('Spring')) techs.push('Spring Cloud / Spring Boot');
+            if (text.includes('React')) techs.push('React + TypeScript');
+            if (text.includes('MySQL')) techs.push('MySQL 数据库');
+            if (text.includes('Redis')) techs.push('Redis 缓存');
+            if (text.includes('Docker') || text.includes('Kubernetes')) techs.push('Docker + Kubernetes');
+            if (text.includes('Nacos')) techs.push('Nacos 注册中心');
+            if (text.includes('RocketMQ') || text.includes('MQ')) techs.push('RocketMQ 消息队列');
+            
+            if (techs.length === 0) {
+                techs.push('微服务框架', '关系型数据库', '缓存系统', '容器化部署');
+            }
+            
+            return techs.join('\n• ');
+        }
+        
+        function generateCodeExample(text) {
+            return `// 服务接口示例\n@RestController\n@RequestMapping("/api/users")\npublic class UserController {\n    @Autowired\n    private UserService userService;\n    \n    @GetMapping("/{id}")\n    public User getUser(@PathVariable Long id) {\n        return userService.findById(id);\n    }\n}`;
+        }
+        
+        function generateFeatures(text) {
+            const features = [];
+            if (text.includes('微服务') || text.includes('服务')) features.push('• 服务解耦，独立部署');
+            if (text.includes('扩展') || text.includes('集群')) features.push('• 高可用，支持水平扩展');
+            if (text.includes('缓存') || text.includes('Redis')) features.push('• 缓存优化，提升性能');
+            if (text.includes('消息') || text.includes('MQ')) features.push('• 异步消息处理');
+            
+            if (features.length === 0) {
+                features.push('• 模块化设计', '• 高性能', '• 易维护', '• 可扩展');
+            }
+            
+            return features.join('\n');
+        }
+        
+        function generateDemoSteps(modules) {
+            return `1. 系统架构概览\n2. ${modules[0]?.name || '核心功能'}演示\n3. ${modules[1]?.name || '业务流程'}展示\n4. 性能测试结果\n5. Q&A 环节`;
+        }
+        
+        function generateHighlights(text) {
+            return '• 微服务架构设计\n• 高性能数据处理\n• 完善的监控体系\n• 容器化部署方案';
+        }
+        
+        function showPreview(slides, container) {
+            container.innerHTML = slides.map((slide, index) => `
+                <div class="slide-preview">
+                    <div class="slide-number">幻灯片 ${index + 1}: ${slide.title}</div>
+                    <div class="slide-content">${slide.content.replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+        }
+        
+        async function insertSlidesToPowerPoint(slides) {
+            return new Promise((resolve, reject) => {
+                PowerPoint.run(async (context) => {
+                    try {
+                        const presentation = context.presentation;
+                        
+                        // 清空现有幻灯片（可选）
+                        // const allSlides = presentation.slides;
+                        // allSlides.load("items");
+                        // await context.sync();
+                        // allSlides.items.forEach(slide => slide.delete());
+                        
+                        // 为每张幻灯片创建内容
+                        for (let i = 0; i < slides.length; i++) {
+                            const slide = slides[i];
+                            
+                            // 如果是第一张，使用当前幻灯片，否则创建新的
+                            let targetSlide;
+                            if (i === 0) {
+                                targetSlide = context.presentation.slides.getActiveSlide();
+                            } else {
+                                targetSlide = presentation.slides.add();
+                            }
+                            
+                            // 添加标题
+                            const titleShape = targetSlide.shapes.addTextBox(
+                                slide.title,
+                                PowerPoint.ShapeTextOrientation.horizontal,
+                                50, 50, 600, 60
+                            );
+                            titleShape.textFrame.textRange.font.size = 32;
+                            titleShape.textFrame.textRange.font.bold = true;
+                            titleShape.textFrame.textRange.font.color = "0078D4";
+                            
+                            // 添加内容
+                            const contentShape = targetSlide.shapes.addTextBox(
+                                slide.content,
+                                PowerPoint.ShapeTextOrientation.horizontal,
+                                50, 130, 600, 400
+                            );
+                            contentShape.textFrame.textRange.font.size = slide.type === 'code' ? 12 : 16;
+                            if (slide.type === 'code') {
+                                contentShape.textFrame.textRange.font.name = "Consolas";
+                            }
+                        }
+                        
+                        await context.sync();
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

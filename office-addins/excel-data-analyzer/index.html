@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Excel 数据分析面板</title>
+    
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .stat-card {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .stat-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-top: 15px;
+        }
+        
+        .data-preview {
+            margin-top: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .select-range-btn {
+            background: #28a745;
+            margin-bottom: 15px;
+        }
+        
+        .select-range-btn:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Excel 数据分析面板</h1>
+        <p class="subtitle">智能分析 Excel 数据并生成可视化图表</p>
+        
+        <div class="section">
+            <div class="section-title">1. 选择数据范围</div>
+            <button class="btn select-range-btn" id="selectRangeBtn">📍 选择数据范围</button>
+            <div id="rangeInfo" style="margin-top: 10px; font-size: 12px; color: #666;"></div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">2. 数据统计</div>
+            <div class="stat-card" id="statsCard">
+                <div class="stat-item">
+                    <div class="stat-value" id="rowCount">-</div>
+                    <div class="stat-label">数据行数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="colCount">-</div>
+                    <div class="stat-label">数据列数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="sumValue">-</div>
+                    <div class="stat-label">数值总和</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avgValue">-</div>
+                    <div class="stat-label">平均值</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">3. 数据可视化</div>
+            <div class="chart-container">
+                <canvas id="dataChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">4. 数据预览</div>
+            <div class="data-preview" id="dataPreview">请先选择数据范围</div>
+        </div>
+        
+        <button class="btn" id="analyzeBtn" disabled>🔍 开始分析</button>
+        <button class="btn" id="insertChartBtn" disabled style="background: #17a2b8; margin-top: 10px;">📈 插入图表到 Excel</button>
+        
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        let selectedRange = null;
+        let chart = null;
+        let chartData = null;
+        
+        Office.onReady((info) => {
+            if (info.host === Office.HostType.Excel) {
+                console.log('Excel 数据分析面板已加载');
+                
+                document.getElementById('selectRangeBtn').addEventListener('click', selectDataRange);
+                document.getElementById('analyzeBtn').addEventListener('click', analyzeData);
+                document.getElementById('insertChartBtn').addEventListener('click', insertChartToExcel);
+            }
+        });
+        
+        function selectDataRange() {
+            Excel.run(async (context) => {
+                try {
+                    const range = context.workbook.getSelectedRange();
+                    range.load("address");
+                    await context.sync();
+                    
+                    selectedRange = range.address;
+                    document.getElementById('rangeInfo').textContent = `已选择: ${selectedRange}`;
+                    document.getElementById('analyzeBtn').disabled = false;
+                    
+                    showStatus('✅ 数据范围已选择', 'success');
+                } catch (error) {
+                    showStatus('❌ 选择范围失败: ' + error.message, 'error');
+                }
+            });
+        }
+        
+        async function analyzeData() {
+            if (!selectedRange) {
+                showStatus('❌ 请先选择数据范围', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            showStatus('正在分析数据...', 'success');
+            
+            try {
+                await Excel.run(async (context) => {
+                    const sheet = context.workbook.worksheets.getActiveWorksheet();
+                    const range = sheet.getRange(selectedRange);
+                    
+                    // 加载数据
+                    range.load("values, rowCount, columnCount");
+                    await context.sync();
+                    
+                    const values = range.values;
+                    const rowCount = range.rowCount;
+                    const colCount = range.columnCount;
+                    
+                    // 更新统计信息
+                    document.getElementById('rowCount').textContent = rowCount;
+                    document.getElementById('colCount').textContent = colCount;
+                    
+                    // 计算数值统计
+                    let sum = 0;
+                    let numCount = 0;
+                    const numericValues = [];
+                    
+                    for (let i = 0; i < values.length; i++) {
+                        for (let j = 0; j < values[i].length; j++) {
+                            const val = values[i][j];
+                            if (typeof val === 'number') {
+                                sum += val;
+                                numCount++;
+                                numericValues.push(val);
+                            }
+                        }
+                    }
+                    
+                    const avg = numCount > 0 ? (sum / numCount).toFixed(2) : 0;
+                    document.getElementById('sumValue').textContent = sum.toFixed(2);
+                    document.getElementById('avgValue').textContent = avg;
+                    
+                    // 生成图表数据
+                    generateChart(values, numericValues);
+                    
+                    // 显示数据预览
+                    showDataPreview(values);
+                    
+                    chartData = { values, numericValues, rowCount, colCount };
+                    
+                    document.getElementById('insertChartBtn').disabled = false;
+                    showStatus('✅ 数据分析完成！', 'success');
+                });
+            } catch (error) {
+                showStatus('❌ 分析失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        
+        function generateChart(values, numericValues) {
+            const ctx = document.getElementById('dataChart').getContext('2d');
+            
+            // 销毁旧图表
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // 准备图表数据
+            let labels = [];
+            let data = [];
+            
+            // 如果有数值数据，创建柱状图
+            if (numericValues.length > 0) {
+                // 取前20个数值点
+                const sampleSize = Math.min(20, numericValues.length);
+                const step = Math.floor(numericValues.length / sampleSize);
+                
+                for (let i = 0; i < sampleSize; i++) {
+                    labels.push(`数据点 ${i + 1}`);
+                    data.push(numericValues[i * step] || 0);
+                }
+            } else {
+                // 如果没有数值，使用行数作为示例
+                const rowCount = Math.min(10, values.length);
+                for (let i = 0; i < rowCount; i++) {
+                    labels.push(`行 ${i + 1}`);
+                    data.push(i + 1);
+                }
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '数据值',
+                        data: data,
+                        backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: '数据分布图'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function showDataPreview(values) {
+            const preview = document.getElementById('dataPreview');
+            const maxRows = Math.min(10, values.length);
+            
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            for (let i = 0; i < maxRows; i++) {
+                html += '<tr>';
+                for (let j = 0; j < Math.min(5, values[i].length); j++) {
+                    html += `<td style="padding: 4px; border: 1px solid #ddd;">${values[i][j] || ''}</td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            if (values.length > maxRows) {
+                html += `<div style="margin-top: 5px; color: #666;">... 还有 ${values.length - maxRows} 行数据</div>`;
+            }
+            
+            preview.innerHTML = html;
+        }
+        
+        async function insertChartToExcel() {
+            if (!chartData) {
+                showStatus('❌ 请先分析数据', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('insertChartBtn');
+            btn.disabled = true;
+            showStatus('正在插入图表...', 'success');
+            
+            try {
+                await Excel.run(async (context) => {
+                    const sheet = context.workbook.worksheets.getActiveWorksheet();
+                    
+                    // 创建图表
+                    const chart = sheet.charts.add(
+                        Excel.ChartType.columnClustered,
+                        sheet.getRange(selectedRange),
+                        Excel.ChartSeriesBy.auto
+                    );
+                    
+                    chart.title.text = "数据分析图表";
+                    chart.legend.position = Excel.ChartLegendPosition.bottom;
+                    chart.dataLabels.showValue = true;
+                    
+                    // 设置图表位置（在数据右侧）
+                    const range = sheet.getRange(selectedRange);
+                    range.load("columnIndex, columnCount");
+                    await context.sync();
+                    
+                    chart.left = 400;
+                    chart.top = 50;
+                    chart.width = 400;
+                    chart.height = 300;
+                    
+                    await context.sync();
+                    showStatus('✅ 图表已成功插入到 Excel！', 'success');
+                });
+            } catch (error) {
+                showStatus('❌ 插入失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+    </script>
+</body>
+</html>
