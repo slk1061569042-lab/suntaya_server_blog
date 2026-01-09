@@ -9,6 +9,7 @@
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "prebuild": "npm run type-check",
+    "prepare": "husky install",
     "commit": "git commit",
     "commit:msg": "node scripts/generate-commit-msg.js"
   },
@@ -38,7 +39,14 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --cache --cache-location .eslintcache --max-warnings=0"
+    ]
   }
 }

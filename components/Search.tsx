@@ -11,17 +11,6 @@ export default function Search() {
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (query.trim()) {
-      const searchResults = searchDocs(query);
-      setResults(searchResults.slice(0, 5));
-      setIsOpen(true);
-    } else {
-      setResults([]);
-      setIsOpen(false);
-    }
-  }, [query]);
-
-  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -39,7 +28,19 @@ export default function Search() {
           type="text"
           placeholder="搜索文档..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            setQuery(value);
+
+            if (value.trim()) {
+              const searchResults = searchDocs(value);
+              setResults(searchResults.slice(0, 5));
+              setIsOpen(true);
+            } else {
+              setResults([]);
+              setIsOpen(false);
+            }
+          }}
           onFocus={() => query.trim() && setIsOpen(true)}
           className="w-full px-4 py-2.5 pl-10 glass rounded-xl text-[#F1F5F9] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/50 transition-all duration-200"
         />

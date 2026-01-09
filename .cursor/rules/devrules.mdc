@@ -163,6 +163,218 @@ function handleAction(action: Operation) {
 4. **及时修复**: 发现类型错误立即修复，不要积累
 5. **代码审查**: 提交前自我审查，确保类型正确
 
+## 🧹 Lint（ESLint）规范
+
+### 1. 必须通过 Lint 检查
+
+- 所有要合并 / 部署的代码，**必须通过**：
+
+```bash
+npm run lint
+```
+
+- 禁止带有 **eslint error** 的代码提交到远端或合并到主分支。
+- 若出现 eslint 报错，**优先修改代码** 以满足规则；仅在有明确理由时才使用局部 `eslint-disable`。
+
+推荐完整本地检查流程：
+
+```bash
+npm run type-check
+npm run lint
+npm run build
+```
+
+### 2. React 相关约束
+
+#### 2.1 不要在 `try/catch` 中构造 JSX 或渲染组件
+
+- ❌ 错误示例（之前在 `app/docs/[slug]/page.tsx` 中出现过）：
+
+```tsx
+try {
+  const data = await loadData();
+  return (
+    <Page>
+      <Sidebar />
+      <Content data={data} />
+    </Page>
+  );
+} catch (e) {
+  console.error(e);
+  return <div>error</div>;
+}
+```
+
+- ✅ 正确示例：只在 `try/catch` 里做数据加载，**JSX 放在函数正常返回路径**，渲染错误交给 Error Boundary：
+
+```tsx
+const filePath = getMarkdownFile(doc.file);
+let html: string;
+let toc: TocItem[];
+
+try {
+  const result = await processMarkdown(filePath);
+  html = result.html;
+  toc = result.toc;
+} catch (error) {
+  console.error('Error loading document:', error);
+  notFound(); // 或其他跳转 / 兜底
+}
+
+return (
+  <div className="min-h-screen flex">
+    <Sidebar />
+    {/* ... */}
+    <TableOfContents items={toc} />
+  </div>
+);
+```
+
+> 原则：**try/catch 负责“拿到数据”，JSX 负责“怎么画”**；渲染异常使用 Error Boundary，而不是 try/catch。
+
+#### 2.2 `useEffect` 中不要用于单纯的同步状态计算
+
+- 对于**仅依赖 props/state 的同步计算**，**优先使用：**
+  - 直接在渲染中计算，或
+  - 事件处理函数中更新状态，
+  而不是套一层 `useEffect` 再 `setState`。
+
+- ❌ 之前的写法（`components/Search.tsx`）：
+
+```tsx
+useEffect(() => {
+  if (query.trim()) {
+    const searchResults = searchDocs(query);
+    setResults(searchResults.slice(0, 5));
+    setIsOpen(true);
+  } else {
+    setResults([]);
+    setIsOpen(false);
+  }
+}, [query]);
+```
+
+- ✅ 改造后的推荐写法：把逻辑放到事件里：
+
+```tsx
+onChange={(e) => {
+  const value = e.target.value;
+  setQuery(value);
+
+  if (value.trim()) {
+    const searchResults = searchDocs(value);
+    setResults(searchResults.slice(0, 5));
+    setIsOpen(true);
+  } else {
+    setResults([]);
+    setIsOpen(false);
+  }
+}}
+```
+
+- 如果确实需要在 `useEffect` 中读取外部系统并同步状态（如 `matchMedia`、订阅事件等），必须：
+  - 只在 **初始化 / 订阅回调中** 调用 `setState`；
+  - 必要时在对应行增加有说明的 `// eslint-disable-next-line react-hooks/set-state-in-effect`，并写清楚原因。
+
+#### 2.3 不要在组件 render 内定义子组件
+
+- ❌ 错误模式（之前在 `GitFlowDiagram` 中出现过，触发 `react-hooks/static-components`）：
+
+```tsx
+export default function Page() {
+  const [state] = useState(...);
+
+  const Item = ({ value }: { value: string }) => {
+    return <div>{value}</div>;
+  };
+
+  return (
+    <div>
+      {list.map(v => (
+        <Item key={v} value={v} />
+      ))}
+    </div>
+  );
+}
+```
+
+- 问题：
+  - 每次 render 都会重新创建 `Item` 组件，可能导致子组件状态丢失或性能问题。
+  - 会触发 eslint 的 `react-hooks/static-components` 报错。
+
+- ✅ 规范写法：**子组件定义在文件顶层**，通过 props 传入所需数据：
+
+```tsx
+function Item({ value }: { value: string }) {
+  return <div>{value}</div>;
+}
+
+export default function Page() {
+  const [state] = useState(...);
+
+  return (
+    <div>
+      {list.map(v => (
+        <Item key={v} value={v} />
+      ))}
+    </div>
+  );
+}
+```
+
+- 如因历史原因暂时无法重构，需要在局部使用：
+
+```tsx
+// eslint-disable-next-line react-hooks/static-components
+const Item = (...) => { ... };
+```
+
+时，**必须在同一行或上方注释中写明原因和后续重构计划**，避免以后继续引入新的内部定义组件。
+
+### 3. Node 脚本与 `require`
+
+项目前端 / TypeScript 代码统一使用 ES Module 导入：
+
+- ✅ 前端/TS 文件：
+
+```ts
+import fs from 'fs';
+```
+
+- ❌ 禁止在 `.ts` / `.tsx` / 前端代码中使用：
+
+```ts
+const fs = require('fs');
+```
+
+针对 **纯 Node 脚本（例如 `scripts/generate-commit-msg.js`，Git hooks 等工具脚本）**：
+
+- 可以继续使用 `require`，但必须在文件顶部统一声明：
+
+```js
+/* eslint-disable @typescript-eslint/no-require-imports */
+```
+
+避免在普通业务代码中到处散落 `require`，统一规范。
+
+### 4. 未使用的变量与导入
+
+- 严格禁止保留未使用的变量、参数或导入：
+  - 包括 `@typescript-eslint/no-unused-vars` 提示的任何内容。
+- 修复优先级：
+  1. 能删除的直接删除；
+  2. 如因接口兼容必须保留，则在对应参数前加下划线（例如 `_unused`）以消除 lint 报错，并在注释中说明原因。
+
+更新后的提交前检查清单（在原有基础上新增）：
+
+- [ ] `npm run type-check` 通过
+- [ ] `npm run lint` 通过（无 eslint error）
+- [ ] `npm run build` 成功
+- [ ] 没有 TypeScript 类型错误
+- [ ] 没有未使用的导入/变量
+- [ ] 没有新的 `eslint-disable` 被随意添加（如有，必须有注释说明原因）
+- [ ] 代码符合项目规范
+
 ## 📚 相关资源
 
 - TypeScript 官方文档: https://www.typescriptlang.org/docs/
@@ -171,4 +383,5 @@ function handleAction(action: Operation) {
 
 ---
 
-**记住**: 如果代码不能构建，就不能部署。始终确保代码可以通过 `npm run build`！
+**记住**: 如果代码不能构建或不能通过 Lint，就不能部署。  
+始终确保代码可以通过：`npm run type-check`、`npm run lint`、`npm run build`！

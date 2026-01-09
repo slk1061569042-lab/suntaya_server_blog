@@ -5,7 +5,6 @@ import DocCard from '@/components/DocCard';
 export default function HomePage() {
   const categories = getAllCategories();
   const featuredDocs = getAllDocs().slice(0, 6);
-  const quickSolution = getAllDocs().find(doc => doc.slug === 'quick-solutions');
 
   return (
     <div className="min-h-screen bg-[#0A0E1A]">

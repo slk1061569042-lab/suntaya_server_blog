@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * AI 智能生成 Git Commit Message
  * 分析代码变更内容，生成有意义的 commit message
@@ -13,7 +14,7 @@ function getStagedFiles() {
   try {
     const output = execSync('git diff --cached --name-status', { encoding: 'utf-8' });
     return output.trim().split('\n').filter(line => line.trim());
-  } catch (error) {
+  } catch {
     return [];
   }
 }
@@ -23,7 +24,7 @@ function getFileDiff(filePath) {
   try {
     const output = execSync(`git diff --cached "${filePath}"`, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
     return output;
-  } catch (error) {
+  } catch {
     return '';
   }
 }
@@ -222,7 +223,7 @@ function generateCommitMessage(changes) {
   // 修改文件
   else if (mainChange.type === 'modified') {
     if (codeAnalysis) {
-      const { addedLines, deletedLines, netChange, detected } = codeAnalysis;
+      const { netChange, detected } = codeAnalysis;
       
       // 根据代码分析生成更智能的描述
       if (detected.fix) {

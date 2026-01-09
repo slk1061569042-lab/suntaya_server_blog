@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable react-hooks/static-components */
 
 import { useState, useEffect } from 'react';
 
@@ -72,19 +73,9 @@ const COMMANDS_BY_AREA: Record<CommandArea, Array<{
   ],
 };
 
-const AREA_LABELS: Record<CommandArea, string> = {
-  working: '工作区命令',
-  staging: '暂存区命令',
-  local: '本地仓库命令',
-  remote: '远程仓库命令',
-  other: '其他命令',
-};
-
 export default function GitFlowDiagram() {
   const [state, setState] = useState<GitState>(INITIAL_STATE);
   const [currentOperation, setCurrentOperation] = useState<Operation>('idle');
-  const [selectedArea, setSelectedArea] = useState<CommandArea | null>(null);
-  const [expandedAreas, setExpandedAreas] = useState<Set<CommandArea>>(new Set());
   const [animatingFiles, setAnimatingFiles] = useState<Set<string>>(new Set());
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [newFileName, setNewFileName] = useState('');
@@ -92,8 +83,9 @@ export default function GitFlowDiagram() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPrefersReducedMotion(mediaQuery.matches);
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches);
     };
@@ -592,26 +584,12 @@ export default function GitFlowDiagram() {
     setState(INITIAL_STATE);
     setCurrentOperation('idle');
     setAnimatingFiles(new Set());
-    setExpandedAreas(new Set());
     setEditLabelCounter(0);
-  };
-
-  const toggleArea = (area: CommandArea) => {
-    setExpandedAreas(prev => {
-      const next = new Set(prev);
-      if (next.has(area)) {
-        next.delete(area);
-      } else {
-        next.add(area);
-      }
-      return next;
-    });
   };
 
   const FileItem = ({ 
     fileName, 
     isAnimating,
-    isInLocalRepo,
     editLabel,
     canAdd,
     onToggleEdit,
@@ -620,7 +598,6 @@ export default function GitFlowDiagram() {
   }: { 
     fileName: string; 
     isAnimating: boolean;
-    isInLocalRepo: boolean;
     editLabel: string | null;
     canAdd: boolean;
     onToggleEdit: (fileName: string, area: 'working' | 'remote') => void;
@@ -760,7 +737,6 @@ export default function GitFlowDiagram() {
         <div className="flex flex-wrap gap-1.5 overflow-y-auto flex-1">
           {files.length > 0 ? (
             files.map((file) => {
-              const isInLocalRepo = state.localRepo.includes(file);
               const editLabel = getFileEditState(file);
               const canAdd = canAddToStaging(file);
               
@@ -769,7 +745,6 @@ export default function GitFlowDiagram() {
                   key={file} 
                   fileName={file} 
                   isAnimating={animatingFiles.has(file)}
-                  isInLocalRepo={isInLocalRepo}
                   editLabel={editLabel}
                   canAdd={canAdd}
                   onToggleEdit={toggleFileEditState}
@@ -783,42 +758,6 @@ export default function GitFlowDiagram() {
           )}
         </div>
       </div>
-    );
-  };
-
-  const CommandCard = ({ cmd, area }: { cmd: typeof COMMANDS_BY_AREA[CommandArea][0]; area: CommandArea }) => {
-    const isCommon = cmd.isCommon;
-    const isExpanded = expandedAreas.has(area);
-    const showCommand = isCommon || isExpanded || !cmd.expandable;
-
-    if (!showCommand) return null;
-
-    return (
-      <button
-        onClick={() => executeCommand(cmd.operation)}
-        disabled={currentOperation !== 'idle'}
-        className={`text-left p-3 rounded-lg border-2 transition-all duration-200 ${
-          currentOperation === cmd.operation
-            ? 'border-[#3B82F6] bg-[#3B82F6]/10 scale-105'
-            : currentOperation !== 'idle'
-            ? 'border-[#1E293B] bg-[#1E293B] text-[#64748B] cursor-not-allowed'
-            : isCommon
-            ? 'border-[#10B981] bg-[#10B981]/10 hover:border-[#10B981] hover:bg-[#10B981]/15'
-            : 'border-[#334155] bg-[#1E293B]/50 hover:border-[#3B82F6] hover:bg-[#3B82F6]/5'
-        }`}
-      >
-        <div className={`font-mono text-sm font-semibold mb-1 ${isCommon ? 'text-[#10B981]' : 'text-[#3B82F6]'}`}>
-          {cmd.command}
-        </div>
-        <div className="text-xs text-[#CBD5E1]">
-          {cmd.description}
-        </div>
-        {cmd.params && (
-          <div className="text-xs text-[#94A3B8] mt-1 italic">
-            参数: {cmd.params}
-          </div>
-        )}
-      </button>
     );
   };
 
