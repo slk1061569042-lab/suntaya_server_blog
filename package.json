@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "type-check": "tsc --noEmit",
+    "prebuild": "npm run type-check"
   },
   "dependencies": {
     "fuse.js": "^7.1.0",

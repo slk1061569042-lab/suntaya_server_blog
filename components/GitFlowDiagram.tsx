@@ -258,17 +258,14 @@ export default function GitFlowDiagram() {
       case 'status':
         handleStatus();
         break;
-      case 'branch':
-        handleBranch();
-        break;
-      case 'checkout':
-        handleCheckout();
-        break;
       case 'fetch':
         handleFetch();
         break;
       case 'restore':
         handleRestore();
+        break;
+      default:
+        // 处理所有 Operation 类型
         break;
     }
   };
@@ -589,6 +586,7 @@ export default function GitFlowDiagram() {
       setCurrentOperation('idle');
     }, prefersReducedMotion ? 0 : 800);
   };
+
 
   const handleResetState = () => {
     setState(INITIAL_STATE);
