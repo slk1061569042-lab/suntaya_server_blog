@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "type-check": "tsc --noEmit",
-    "prebuild": "npm run type-check"
+    "prebuild": "npm run type-check",
+    "commit": "git commit",
+    "commit:msg": "node scripts/generate-commit-msg.js"
   },
   "dependencies": {
     "fuse.js": "^7.1.0",
