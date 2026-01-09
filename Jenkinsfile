@@ -1,104 +1,156 @@
 pipeline {
-    agent any
-    
-    environment {
-        NODE_VERSION = '20'
-        PROJECT_NAME = 'git-docs-blog'
+    // 使用 Docker 容器中的 Node 环境构建，避免在 Jenkins 宿主机装一堆东西
+    agent {
+        docker {
+            image 'node:18-alpine'
+            // 用 root 用户避免 node_modules 权限问题
+            args '-u root:root'
+        }
     }
-    
+
+    environment {
+        // 部署服务器信息（静态导出后通过 SSH 发布到宝塔站点）
+        DEPLOY_HOST = '115.190.54.220'
+        DEPLOY_PORT = '22'
+        DEPLOY_USER = 'root'
+        DEPLOY_DIR  = '/www/wwwroot/next.sunyas.com'
+
+        CI       = 'true'
+        NODE_ENV = 'production'
+    }
+
+    options {
+        // 保留最近 10 次构建
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        // 单次构建最长 20 分钟
+        timeout(time: 20, unit: 'MINUTES')
+        // 控制台输出带时间戳
+        timestamps()
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 echo '正在检出代码...'
+                // 如果 Job 是 “Pipeline script from SCM”，Jenkins 会自动 checkout，这里再确认一下
                 checkout scm
+                sh 'pwd && ls -la'
             }
         }
-        
-        stage('Setup Node.js') {
-            steps {
-                echo '正在设置 Node.js 环境...'
-                sh '''
-                    # 如果使用 nvm
-                    # export NVM_DIR="$HOME/.nvm"
-                    # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-                    # nvm use ${NODE_VERSION}
-                    
-                    # 或者直接使用系统安装的 node
-                    node --version
-                    npm --version
-                '''
-            }
-        }
-        
+
         stage('Install Dependencies') {
             steps {
                 echo '正在安装依赖...'
-                sh 'npm ci'
+                sh '''
+                  set -e
+
+                  echo "Node 版本:"
+                  node -v
+                  echo "NPM 版本:"
+                  npm -v
+
+                  if [ -f package-lock.json ]; then
+                    echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖"
+                    npm ci
+                  else
+                    echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖"
+                    npm install
+                  fi
+                '''
             }
         }
-        
+
         stage('Lint') {
             steps {
-                echo '正在运行代码检查...'
-                sh 'npm run lint || true'  # 如果 lint 失败不中断构建
+                echo '正在运行代码检查（lint）...'
+                // lint 失败不阻塞整个构建
+                sh '''
+                  set +e
+                  if npm run | grep -q "lint"; then
+                    echo "===> 检测到 lint 脚本，开始执行"
+                    npm run lint || echo "lint 失败，但不会中断构建"
+                  else
+                    echo "===> 未检测到 lint 脚本，跳过 lint"
+                  fi
+                '''
             }
         }
-        
-        stage('Build') {
+
+        stage('Build Next.js') {
             steps {
-                echo '正在构建项目...'
-                sh 'npm run build'
+                echo '正在构建 Next.js 项目...'
+                sh '''
+                  set -e
+                  npm run build
+                '''
             }
         }
-        
-        stage('Deploy') {
+
+        stage('Export static site') {
             steps {
-                echo '正在部署...'
-                script {
-                    // 方式一：部署到服务器目录
-                    // sh '''
-                    //     # 复制构建文件到服务器目录
-                    //     rsync -avz --delete .next/ user@your-server:/var/www/${PROJECT_NAME}/.next/
-                    //     rsync -avz --delete public/ user@your-server:/var/www/${PROJECT_NAME}/public/
-                    //     rsync -avz package.json package-lock.json user@your-server:/var/www/${PROJECT_NAME}/
-                    //     
-                    //     # 在服务器上重启应用
-                    //     ssh user@your-server "cd /var/www/${PROJECT_NAME} && npm install --production && pm2 restart ${PROJECT_NAME} || pm2 start npm --name ${PROJECT_NAME} -- start"
-                    // '''
-                    
-                    // 方式二：使用 Docker
-                    // sh '''
-                    //     docker build -t ${PROJECT_NAME}:latest .
-                    //     docker stop ${PROJECT_NAME} || true
-                    //     docker rm ${PROJECT_NAME} || true
-                    //     docker run -d --name ${PROJECT_NAME} -p 3000:3000 ${PROJECT_NAME}:latest
-                    // '''
-                    
-                    // 方式三：使用 PM2（如果 Jenkins 和服务器在同一台机器）
-                    sh '''
-                        # 停止旧进程
-                        pm2 stop ${PROJECT_NAME} || true
-                        pm2 delete ${PROJECT_NAME} || true
-                        
-                        # 启动新进程
-                        pm2 start npm --name ${PROJECT_NAME} -- start
-                        pm2 save
-                    '''
-                }
+                echo '正在执行静态导出 npm run export...'
+                sh '''
+                  set -e
+                  npm run export
+
+                  if [ ! -d "out" ]; then
+                    echo "错误：未找到 out 目录，静态导出失败"
+                    exit 1
+                  fi
+
+                  echo "===> out 目录内容如下："
+                  ls -la out
+                '''
+            }
+        }
+
+        stage('Deploy to next.sunyas.com') {
+            steps {
+                echo "正在通过 SSH 将静态文件部署到 ${DEPLOY_DIR} ..."
+                // 依赖 Jenkins 的 Publish Over SSH 插件
+                sshPublisher(
+                    publishers: [
+                        sshPublisherDesc(
+                            // 这里名字要和 Manage Jenkins → Configure System → Publish over SSH 里配置的 Server Name 一致
+                            // 比如你那里配的是 main-server，就写 main-server
+                            configName: 'main-server',
+                            transfers: [
+                                sshTransfer(
+                                    // 要上传的本地文件（构建输出）
+                                    sourceFiles: 'out/**',
+                                    // 去掉路径前缀，这样 out/index.html 会直接变成目标目录下的 index.html
+                                    removePrefix: 'out',
+                                    // 目标目录（宝塔站点根目录）
+                                    remoteDirectory: "${DEPLOY_DIR}",
+                                    // 在上传前清空目标目录（由插件完成，避免上传后自己 rm -rf 把新文件删掉）
+                                    cleanRemote: true,
+                                    // 上传完成后在远程服务器执行的命令（这里只做查看）
+                                    execCommand: '''
+                                      set -e
+                                      echo "===> 部署完成，当前目录结构："
+                                      ls -la '"${DEPLOY_DIR}"'
+                                      # 如确实需要重载 Nginx，可按你宝塔的命令来，例如（请根据你实际环境调整或先注释掉）：
+                                      # /etc/init.d/nginx reload
+                                      # /www/server/panel/bt nginx reload
+                                    '''
+                                )
+                            ],
+                            usePromotionTimestamp: false,
+                            useWorkspaceInPromotion: false,
+                            verbose: true
+                        )
+                    ]
+                )
             }
         }
     }
-    
+
     post {
         success {
-            echo '✅ 构建和部署成功！'
-            // 可以发送通知，例如：
-            // slackSend(color: 'good', message: "构建成功: ${env.BUILD_URL}")
+            echo '✅ 构建和静态部署成功！已发布到 http://next.sunyas.com'
         }
         failure {
-            echo '❌ 构建或部署失败！'
-            // 可以发送通知，例如：
-            // slackSend(color: 'danger', message: "构建失败: ${env.BUILD_URL}")
+            echo '❌ 构建或部署失败，请检查 Jenkins 控制台日志'
         }
         always {
             echo '清理工作空间...'
