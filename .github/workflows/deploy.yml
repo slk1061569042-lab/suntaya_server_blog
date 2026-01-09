@@ -39,22 +39,24 @@ jobs:
           retention-days: 7
 
   # 可选：部署到 Vercel（Next.js 官方平台）
-  deploy-vercel:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
+  # 已禁用：因为使用 Jenkins 部署到自己的服务器，不需要 Vercel
+  # 如果需要启用，请在 GitHub Settings → Secrets 中配置 VERCEL_TOKEN、VERCEL_ORG_ID、VERCEL_PROJECT_ID
+  # deploy-vercel:
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     
+  #     - name: Deploy to Vercel
+  #       uses: amondnet/vercel-action@v25
+  #       with:
+  #         vercel-token: ${{ secrets.VERCEL_TOKEN }}
+  #         vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+  #         vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+  #         vercel-args: '--prod'
 
   # 可选：部署到 GitHub Pages（需要静态导出）
   # deploy-pages:
