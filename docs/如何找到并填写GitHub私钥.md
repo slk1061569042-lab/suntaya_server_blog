@@ -32,13 +32,12 @@ notepad C:\Users\Administrator\.ssh\id_ed25519_github_new
 
 ```
 -----BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACCH4Ohjg7Jdayl90LBlugbtI+22hX50/XxRqUoni+s5PAAAAKCxAvQ7sQL0
-OwAAAAtzc2gtZWQyNTUxOQAAACCH4Ohjg7Jdayl90LBlugbtI+22hX50/XxRqUoni+s5PA
-AAAECSpJIzA6c4QfBQCI9fJ9gBlru0G4n20WttonX39DHQlYfg6GODsl1rKX3QsGW6Bu0j
-7baFfnT9fFGpSieL6zk8AAAAF3NsazEwNjE1NjkwNDJAZ21haWwuY29tAQIDBAUG
+[你的私钥内容 - base64 编码的字符串]
+[多行 base64 编码内容]
 -----END OPENSSH PRIVATE KEY-----
 ```
+
+**⚠️ 安全提示**: 私钥是敏感信息，不要将真实的私钥内容提交到 Git 仓库中！
 
 **重要**：
 - ✅ 复制**全部内容**，包括：
