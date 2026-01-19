@@ -44,3 +44,28 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# archived git docs (generated files)
+content/git-docs/_archive/
+
+# Ignore all .md and .ps1 files by default
+*.md
+*.ps1
+
+# Exception: Keep .md files in specific folders
+!content/git-docs/*.md
+!content/git-docs/**/*.md
+!dev_docs/*.md
+!dev_docs/**/*.md
+!office-addins/*.md
+!office-addins/**/*.md
+!.cursor/commands/*.md
+!.cursor/commands/**/*.md
+!archive/docs/*.md
+!archive/docs/**/*.md
+!docs/*.md
+!docs/**/*.md
+
+# Exception: Keep .ps1 files in specific folders (if needed)
+# Uncomment and add folders if you want to keep specific .ps1 files
+# !scripts/some_important_script.ps1
