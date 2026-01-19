@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "url": "http://115.190.54.220:8000/mcp",
+      "headers": {
+        "apikey": "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJyb2xlIjogImFub24iLCAiaXNzIjogInN1cGFiYXNlLWRlbW8iLCAiaWF0IjogMTc2NzE3ODkxNiwgImV4cCI6IDk5OTk5OTk5OTl9.c-3hQgs-DOlhcnEx5EE5EhAj0GYsAP78lEMlgexmj1Q"
+      }
+    }
+  }
+}
