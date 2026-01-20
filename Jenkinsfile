@@ -16,7 +16,8 @@ pipeline {
         DEPLOY_DIR  = '/www/wwwroot/next.sunyas.com'
 
         CI       = 'true'
-        NODE_ENV = 'production'
+        // 注意：不设置 NODE_ENV=production，因为 npm ci 在 NODE_ENV=production 时会跳过 devDependencies
+        // 我们会在构建阶段单独设置 NODE_ENV
         // 跳过 npm prepare 脚本（避免 husky install 失败）
         npm_config_ignore_scripts = 'true'
     }
@@ -51,19 +52,24 @@ pipeline {
                   echo "NPM 版本:"
                   npm -v
 
+                  # 临时取消 NODE_ENV=production，确保安装 devDependencies
+                  unset NODE_ENV
+                  
                   if [ -f package-lock.json ]; then
                     echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖（包括 devDependencies）"
-                    npm ci --include=dev
+                    npm ci
                   else
                     echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖（包括 devDependencies）"
-                    npm install --include=dev
+                    npm install
                   fi
                   
-                  # 确保 TypeScript 已安装（Next.js 需要它来加载 next.config.ts）
+                  # 验证 TypeScript 已安装（Next.js 需要它来加载 next.config.ts）
                   echo "===> 验证 TypeScript 安装..."
-                  if ! command -v tsc &> /dev/null && [ ! -f node_modules/.bin/tsc ]; then
+                  if [ ! -f node_modules/typescript/package.json ]; then
                     echo "===> TypeScript 未找到，显式安装..."
                     npm install typescript --save-dev
+                  else
+                    echo "===> TypeScript 已安装"
                   fi
                 '''
             }
@@ -90,6 +96,8 @@ pipeline {
                 echo '正在构建 Next.js 项目...'
                 sh '''
                   set -e
+                  # 设置生产环境变量（仅用于构建）
+                  export NODE_ENV=production
                   npm run build
                 '''
             }

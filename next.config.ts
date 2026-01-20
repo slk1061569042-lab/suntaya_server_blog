@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // 目前使用 Node 运行 Next.js，不做静态导出，保持默认配置
+  // 使用 standalone 输出模式，优化部署包大小
+  output: 'standalone',
 };
 
 export default nextConfig;
