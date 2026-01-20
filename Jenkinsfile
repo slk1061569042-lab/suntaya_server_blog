@@ -9,6 +9,11 @@ pipeline {
     }
 
     environment {
+        // 编码设置（解决中文乱码问题）
+        LANG = 'zh_CN.UTF-8'
+        LC_ALL = 'zh_CN.UTF-8'
+        PYTHONIOENCODING = 'utf-8'
+        
         // 部署服务器信息（服务端渲染模式部署）
         DEPLOY_HOST = '115.190.54.220'
         DEPLOY_PORT = '22'
@@ -35,7 +40,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo '正在检出代码...'
+                script {
+                    // 设置 Shell 编码（解决中文乱码问题）
+                    sh '''
+                        export LANG=zh_CN.UTF-8
+                        export LC_ALL=zh_CN.UTF-8
+                        echo "正在检出代码..."
+                    '''
+                }
                 // 如果 Job 是 "Pipeline script from SCM"，Jenkins 会自动 checkout，这里再确认一下
                 checkout scm
                 sh 'pwd && ls -la'
