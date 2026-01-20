@@ -9,11 +9,12 @@ pipeline {
     }
 
     environment {
-        // 部署服务器信息（静态导出后通过 SSH 发布到宝塔站点）
+        // 部署服务器信息（服务端渲染模式部署）
         DEPLOY_HOST = '115.190.54.220'
         DEPLOY_PORT = '22'
         DEPLOY_USER = 'root'
         DEPLOY_DIR  = '/www/wwwroot/next.sunyas.com'
+        APP_PORT    = '3000'
 
         CI       = 'true'
         // 注意：不设置 NODE_ENV=production，因为 npm ci 在 NODE_ENV=production 时会跳过 devDependencies
@@ -35,7 +36,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo '正在检出代码...'
-                // 如果 Job 是 “Pipeline script from SCM”，Jenkins 会自动 checkout，这里再确认一下
+                // 如果 Job 是 "Pipeline script from SCM"，Jenkins 会自动 checkout，这里再确认一下
                 checkout scm
                 sh 'pwd && ls -la'
             }
@@ -103,52 +104,98 @@ pipeline {
             }
         }
 
-        stage('Export static site') {
+        stage('Package for deployment') {
             steps {
-                echo '正在执行静态导出 npm run export...'
+                echo '正在打包部署文件...'
                 sh '''
                   set -e
-                  npm run export
-
-                  if [ ! -d "out" ]; then
-                    echo "错误：未找到 out 目录，静态导出失败"
+                  
+                  # 检查构建输出
+                  if [ ! -d ".next" ]; then
+                    echo "错误：未找到 .next 目录，构建失败"
                     exit 1
                   fi
-
-                  echo "===> out 目录内容如下："
-                  ls -la out
+                  
+                  # 检查 standalone 输出
+                  if [ ! -d ".next/standalone" ]; then
+                    echo "错误：未找到 .next/standalone 目录，请确保 next.config.ts 中配置了 output: 'standalone'"
+                    exit 1
+                  fi
+                  
+                  echo "===> 构建输出目录："
+                  ls -la .next/standalone
+                  
+                  # 创建部署包
+                  echo "===> 准备部署文件..."
+                  mkdir -p deploy-package
+                  
+                  # 复制 standalone 文件
+                  cp -r .next/standalone/* deploy-package/
+                  
+                  # 复制必要的静态文件
+                  if [ -d "public" ]; then
+                    cp -r public deploy-package/
+                  fi
+                  
+                  # 复制 package.json（用于 PM2 启动）
+                  cp package.json deploy-package/
+                  
+                  echo "===> 部署包内容："
+                  ls -la deploy-package
                 '''
             }
         }
 
         stage('Deploy to next.sunyas.com') {
             steps {
-                echo "正在通过 SSH 将静态文件部署到 ${DEPLOY_DIR} ..."
+                echo "正在通过 SSH 部署到 ${DEPLOY_DIR} ..."
                 // 依赖 Jenkins 的 Publish Over SSH 插件
                 sshPublisher(
                     publishers: [
                         sshPublisherDesc(
                             // 这里名字要和 Manage Jenkins → Configure System → Publish over SSH 里配置的 Server Name 一致
-                            // 比如你那里配的是 main-server，就写 main-server
                             configName: 'main-server',
                             transfers: [
                                 sshTransfer(
                                     // 要上传的本地文件（构建输出）
-                                    sourceFiles: 'out/**',
-                                    // 去掉路径前缀，这样 out/index.html 会直接变成目标目录下的 index.html
-                                    removePrefix: 'out',
-                                    // 目标目录（宝塔站点根目录）
+                                    sourceFiles: 'deploy-package/**',
+                                    // 去掉路径前缀
+                                    removePrefix: 'deploy-package',
+                                    // 目标目录
                                     remoteDirectory: "${DEPLOY_DIR}",
-                                    // 在上传前清空目标目录（由插件完成，避免上传后自己 rm -rf 把新文件删掉）
+                                    // 在上传前清空目标目录
                                     cleanRemote: true,
-                                    // 上传完成后在远程服务器执行的命令（这里只做查看）
+                                    // 上传完成后在远程服务器执行的命令
                                     execCommand: '''
                                       set -e
+                                      cd '"${DEPLOY_DIR}"'
+                                      
                                       echo "===> 部署完成，当前目录结构："
-                                      ls -la '"${DEPLOY_DIR}"'
-                                      # 如确实需要重载 Nginx，可按你宝塔的命令来，例如（请根据你实际环境调整或先注释掉）：
-                                      # /etc/init.d/nginx reload
-                                      # /www/server/panel/bt nginx reload
+                                      ls -la
+                                      
+                                      echo "===> 检查 Node.js 版本："
+                                      node -v || echo "Node.js 未安装，需要安装 Node.js"
+                                      
+                                      echo "===> 检查 PM2："
+                                      pm2 -v || echo "PM2 未安装，需要安装 PM2"
+                                      
+                                      # 停止旧进程（如果存在）
+                                      pm2 stop next-sunyas || echo "进程不存在，跳过停止"
+                                      pm2 delete next-sunyas || echo "进程不存在，跳过删除"
+                                      
+                                      # 启动新进程
+                                      echo "===> 启动 Next.js 应用..."
+                                      pm2 start server.js --name next-sunyas --update-env || {
+                                        echo "PM2 启动失败，尝试使用 node 直接启动"
+                                        nohup node server.js > app.log 2>&1 &
+                                        echo $! > app.pid
+                                      }
+                                      
+                                      # 保存 PM2 配置
+                                      pm2 save || echo "PM2 save 失败，跳过"
+                                      
+                                      echo "===> 部署完成！"
+                                      echo "===> 应用运行在端口 '"${APP_PORT}"'"
                                     '''
                                 )
                             ],
@@ -164,7 +211,8 @@ pipeline {
 
     post {
         success {
-            echo '✅ 构建和静态部署成功！已发布到 http://next.sunyas.com'
+            echo '✅ 构建和部署成功！已发布到 http://next.sunyas.com'
+            echo '✅ Next.js 服务端应用已启动'
         }
         failure {
             echo '❌ 构建或部署失败，请检查 Jenkins 控制台日志'
