@@ -134,20 +134,14 @@ pipeline {
                   echo "===> 准备部署文件..."
                   mkdir -p deploy-package
                   
-                  # 复制 standalone 文件
+                  # 1. 复制 standalone 目录内容到部署包根目录
                   cp -r .next/standalone/* deploy-package/
                   
-                  # 复制 .next 目录（Next.js 需要它来运行）
-                  # standalone 模式仍然需要 .next 目录中的一些文件
-                  mkdir -p deploy-package/.next
-                  cp -r .next/standalone deploy-package/.next/
-                  # 复制其他必要的 .next 文件
-                  if [ -d ".next/static" ]; then
-                    cp -r .next/static deploy-package/.next/
-                  fi
-                  if [ -f ".next/BUILD_ID" ]; then
-                    cp .next/BUILD_ID deploy-package/.next/
-                  fi
+                  # 2. 复制整个 .next 目录（包含所有必要文件，如 routes-manifest.json）
+                  cp -r .next deploy-package/
+                  
+                  # 3. 删除 deploy-package/.next/standalone（因为 standalone 内容已在根目录）
+                  rm -rf deploy-package/.next/standalone
                   
                   # 复制必要的静态文件
                   if [ -d "public" ]; then
