@@ -183,9 +183,9 @@ pipeline {
                                     // 在上传前清空目标目录
                                     cleanRemote: true,
                                     // 上传完成后在远程服务器执行的命令
-                                    execCommand: '''
+                                    execCommand: """
                                       set -e
-                                      cd '"${DEPLOY_DIR}"'
+                                      cd ${DEPLOY_DIR}
                                       
                                       echo "===> 部署完成，检查目录结构..."
                                       ls -la
@@ -246,8 +246,8 @@ pipeline {
                                       fi
                                       
                                       echo "===> 部署完成！"
-                                      echo "===> 应用运行在端口 '"${APP_PORT}"'"
-                                    '''
+                                      echo "===> 应用运行在端口 ${APP_PORT}"
+                                    """
                                 )
                             ],
                             usePromotionTimestamp: false,
