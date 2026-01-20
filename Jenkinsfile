@@ -52,11 +52,18 @@ pipeline {
                   npm -v
 
                   if [ -f package-lock.json ]; then
-                    echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖"
-                    npm ci
+                    echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖（包括 devDependencies）"
+                    npm ci --include=dev
                   else
-                    echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖"
-                    npm install
+                    echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖（包括 devDependencies）"
+                    npm install --include=dev
+                  fi
+                  
+                  # 确保 TypeScript 已安装（Next.js 需要它来加载 next.config.ts）
+                  echo "===> 验证 TypeScript 安装..."
+                  if ! command -v tsc &> /dev/null && [ ! -f node_modules/.bin/tsc ]; then
+                    echo "===> TypeScript 未找到，显式安装..."
+                    npm install typescript --save-dev
                   fi
                 '''
             }
