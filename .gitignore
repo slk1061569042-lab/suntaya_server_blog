@@ -57,6 +57,9 @@ content/git-docs/_archive/
 !content/git-docs/**/*.md
 !dev_docs/*.md
 !dev_docs/**/*.md
+# Ignore temporary/process documents and scripts in dev_docs/temp
+dev_docs/temp/
+dev_docs/temp/**/*
 !office-addins/*.md
 !office-addins/**/*.md
 !.cursor/commands/*.md
@@ -66,6 +69,7 @@ content/git-docs/_archive/
 !docs/*.md
 !docs/**/*.md
 
-# Exception: Keep .ps1 files in specific folders (if needed)
-# Uncomment and add folders if you want to keep specific .ps1 files
+# Exception: Keep .ps1 files in specific folders (only if explicitly needed)
+# To allow a specific .ps1 file, uncomment and add the path:
 # !scripts/some_important_script.ps1
+# Note: By default, all .ps1 files are ignored and should be in dev_docs/temp/scripts/
