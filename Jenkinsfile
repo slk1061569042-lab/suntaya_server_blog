@@ -37,6 +37,12 @@ pipeline {
         timestamps()
     }
 
+    // 自动构建触发器
+    triggers {
+        // GitHub Webhook 触发（当代码推送到 GitHub 时自动构建）
+        githubPush()
+    }
+
     stages {
         stage('Checkout') {
             steps {
