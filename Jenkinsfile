@@ -165,34 +165,38 @@ pipeline {
 
         stage('Deploy to next.sunyas.com') {
             steps {
-                echo "正在通过 SSH 部署到 ${DEPLOY_DIR} ..."
-                // 依赖 Jenkins 的 Publish Over SSH 插件
-                sshPublisher(
-                    publishers: [
-                        sshPublisherDesc(
-                            // 这里名字要和 Manage Jenkins → Configure System → Publish over SSH 里配置的 Server Name 一致
-                            configName: 'main-server',
-                            transfers: [
-                                sshTransfer(
-                                    // 要上传的本地文件（构建输出）
-                                    sourceFiles: 'deploy-package/**',
-                                    // 去掉路径前缀
-                                    removePrefix: 'deploy-package',
-                                    // 目标目录
-                                    remoteDirectory: "${DEPLOY_DIR}",
-                                    // 在上传前清空目标目录
-                                    cleanRemote: true,
-                                    // 上传完成后在远程服务器执行的命令
-                                    // 注意：必须使用双引号（"）而不是三引号（"""）来允许 Groovy 变量插值
-                                    execCommand: "set -e && cd ${env.DEPLOY_DIR} && echo '===> 部署完成，检查目录结构...' && ls -la && if [ -d 'www/wwwroot/next.sunyas.com' ]; then echo '===> 检测到文件在子目录中，正在移动到正确位置...' && mv www/wwwroot/next.sunyas.com/* . 2>/dev/null || true && mv www/wwwroot/next.sunyas.com/.* . 2>/dev/null || true && rm -rf www && echo '===> 文件已移动到正确位置'; fi && echo '===> 最终目录结构：' && ls -la && if [ ! -f 'server.js' ]; then echo '错误：未找到 server.js 文件' && exit 1; fi && if [ ! -d '.next' ]; then echo '错误：未找到 .next 目录' && exit 1; fi && echo '===> 检查 Node.js 版本：' && node -v || echo 'Node.js 未安装，需要安装 Node.js' && echo '===> 检查 PM2：' && pm2 -v || echo 'PM2 未安装，需要安装 PM2' && pm2 stop next-sunyas || echo '进程不存在，跳过停止' && pm2 delete next-sunyas || echo '进程不存在，跳过删除' && echo '===> 启动 Next.js 应用...' && (pm2 start server.js --name next-sunyas --update-env && echo '===> PM2 启动成功' || (echo '===> PM2 启动失败，尝试使用 node 直接启动' && nohup node server.js > app.log 2>&1 & echo \\$! > app.pid && echo '===> 使用 node 直接启动')) && pm2 save || echo 'PM2 save 失败，跳过' && sleep 2 && (pm2 list | grep -q 'next-sunyas.*online' && echo '===> 应用已成功启动' || echo '===> 警告：应用可能未正常启动，请检查 PM2 日志') && echo '===> 部署完成！' && echo '===> 应用运行在端口 ${env.APP_PORT}'"
-                                )
-                            ],
-                            usePromotionTimestamp: false,
-                            useWorkspaceInPromotion: false,
-                            verbose: true
-                        )
-                    ]
-                )
+                script {
+                    def deployDir = env.DEPLOY_DIR
+                    def appPort = env.APP_PORT
+                    echo "正在通过 SSH 部署到 ${deployDir} ..."
+                    // 依赖 Jenkins 的 Publish Over SSH 插件
+                    sshPublisher(
+                        publishers: [
+                            sshPublisherDesc(
+                                // 这里名字要和 Manage Jenkins → Configure System → Publish over SSH 里配置的 Server Name 一致
+                                configName: 'main-server',
+                                transfers: [
+                                    sshTransfer(
+                                        // 要上传的本地文件（构建输出）
+                                        sourceFiles: 'deploy-package/**',
+                                        // 去掉路径前缀
+                                        removePrefix: 'deploy-package',
+                                        // 目标目录
+                                        remoteDirectory: deployDir,
+                                        // 在上传前清空目标目录
+                                        cleanRemote: true,
+                                        // 上传完成后在远程服务器执行的命令
+                                        // 使用单引号字符串，避免 Groovy 解析问题，通过字符串连接插入变量值
+                                        execCommand: """set -e && cd '${deployDir}' && echo '===> 部署完成，检查目录结构...' && ls -la && if [ -d 'www/wwwroot/next.sunyas.com' ]; then echo '===> 检测到文件在子目录中，正在移动到正确位置...' && mv www/wwwroot/next.sunyas.com/* . 2>/dev/null || true && mv www/wwwroot/next.sunyas.com/.* . 2>/dev/null || true && rm -rf www && echo '===> 文件已移动到正确位置'; fi && echo '===> 最终目录结构：' && ls -la && if [ ! -f 'server.js' ]; then echo '错误：未找到 server.js 文件' && exit 1; fi && if [ ! -d '.next' ]; then echo '错误：未找到 .next 目录' && exit 1; fi && echo '===> 检查 Node.js 版本：' && node -v || echo 'Node.js 未安装，需要安装 Node.js' && echo '===> 检查 PM2：' && pm2 -v || echo 'PM2 未安装，需要安装 PM2' && pm2 stop next-sunyas || echo '进程不存在，跳过停止' && pm2 delete next-sunyas || echo '进程不存在，跳过删除' && echo '===> 启动 Next.js 应用...' && (pm2 start server.js --name next-sunyas --update-env && echo '===> PM2 启动成功' || (echo '===> PM2 启动失败，尝试使用 node 直接启动' && nohup node server.js > app.log 2>&1 & echo \\$! > app.pid && echo '===> 使用 node 直接启动')) && pm2 save || echo 'PM2 save 失败，跳过' && sleep 2 && (pm2 list | grep -q 'next-sunyas.*online' && echo '===> 应用已成功启动' || echo '===> 警告：应用可能未正常启动，请检查 PM2 日志') && echo '===> 部署完成！' && echo '===> 应用运行在端口 ${appPort}'"""
+                                    )
+                                ],
+                                usePromotionTimestamp: false,
+                                useWorkspaceInPromotion: false,
+                                verbose: true
+                            )
+                        ]
+                    )
+                }
             }
         }
     }
