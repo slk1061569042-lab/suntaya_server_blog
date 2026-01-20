@@ -185,7 +185,7 @@ pipeline {
                                     // 上传完成后在远程服务器执行的命令
                                     execCommand: """
                                       set -e
-                                      cd ${env.DEPLOY_DIR}
+                                      cd "$env.DEPLOY_DIR"
                                       
                                       echo "===> 部署完成，检查目录结构..."
                                       ls -la
@@ -246,7 +246,7 @@ pipeline {
                                       fi
                                       
                                       echo "===> 部署完成！"
-                                      echo "===> 应用运行在端口 ${env.APP_PORT}"
+                                      echo "===> 应用运行在端口 $env.APP_PORT"
                                     """
                                 )
                             ],
