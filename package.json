@@ -9,7 +9,7 @@
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "prebuild": "npm run type-check",
-    "prepare": "husky install",
+    "prepare": "husky install || true",
     "commit": "git commit",
     "commit:msg": "node scripts/generate-commit-msg.js"
   },
