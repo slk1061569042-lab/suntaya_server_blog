@@ -17,6 +17,8 @@ pipeline {
 
         CI       = 'true'
         NODE_ENV = 'production'
+        // 跳过 npm prepare 脚本（避免 husky install 失败）
+        npm_config_ignore_scripts = 'true'
     }
 
     options {
@@ -50,11 +52,11 @@ pipeline {
                   npm -v
 
                   if [ -f package-lock.json ]; then
-                    echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖（跳过 prepare 脚本）"
-                    npm ci --ignore-scripts
+                    echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖"
+                    npm ci
                   else
-                    echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖（跳过 prepare 脚本）"
-                    npm install --ignore-scripts
+                    echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖"
+                    npm install
                   fi
                 '''
             }
