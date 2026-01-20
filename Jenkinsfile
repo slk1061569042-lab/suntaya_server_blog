@@ -80,15 +80,20 @@ pipeline {
             steps {
                 echo '正在运行代码检查（lint）...'
                 // lint 失败不阻塞整个构建
-                sh '''
-                  set +e
-                  if npm run | grep -q "lint"; then
-                    echo "===> 检测到 lint 脚本，开始执行"
-                    npm run lint || echo "lint 失败，但不会中断构建"
-                  else
-                    echo "===> 未检测到 lint 脚本，跳过 lint"
-                  fi
-                '''
+                script {
+                    try {
+                        sh '''
+                          if npm run | grep -q "lint"; then
+                            echo "===> 检测到 lint 脚本，开始执行"
+                            npm run lint || true
+                          else
+                            echo "===> 未检测到 lint 脚本，跳过 lint"
+                          fi
+                        '''
+                    } catch (Exception e) {
+                        echo "Lint 阶段有警告，但不会中断构建: ${e.getMessage()}"
+                    }
+                }
             }
         }
 
@@ -220,14 +225,25 @@ pipeline {
                                       
                                       # 启动新进程
                                       echo "===> 启动 Next.js 应用..."
-                                      pm2 start server.js --name next-sunyas --update-env || {
-                                        echo "PM2 启动失败，尝试使用 node 直接启动"
+                                      if pm2 start server.js --name next-sunyas --update-env; then
+                                        echo "===> PM2 启动成功"
+                                      else
+                                        echo "===> PM2 启动失败，尝试使用 node 直接启动"
                                         nohup node server.js > app.log 2>&1 &
                                         echo $! > app.pid
-                                      }
+                                        echo "===> 使用 node 直接启动"
+                                      fi
                                       
-                                      # 保存 PM2 配置
+                                      # 保存 PM2 配置（失败不影响部署）
                                       pm2 save || echo "PM2 save 失败，跳过"
+                                      
+                                      # 验证应用是否启动
+                                      sleep 2
+                                      if pm2 list | grep -q "next-sunyas.*online"; then
+                                        echo "===> 应用已成功启动"
+                                      else
+                                        echo "===> 警告：应用可能未正常启动，请检查 PM2 日志"
+                                      fi
                                       
                                       echo "===> 部署完成！"
                                       echo "===> 应用运行在端口 '"${APP_PORT}"'"
