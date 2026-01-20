@@ -2,7 +2,7 @@ pipeline {
     // 使用 Docker 容器中的 Node 环境构建，避免在 Jenkins 宿主机装一堆东西
     agent {
         docker {
-            image 'node:18-alpine'
+            image 'node:20-alpine'
             // 用 root 用户避免 node_modules 权限问题
             args '-u root:root'
         }
