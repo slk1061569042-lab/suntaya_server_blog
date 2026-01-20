@@ -182,8 +182,31 @@ pipeline {
                                       set -e
                                       cd '"${DEPLOY_DIR}"'
                                       
-                                      echo "===> 部署完成，当前目录结构："
+                                      echo "===> 部署完成，检查目录结构..."
                                       ls -la
+                                      
+                                      # 修复部署路径问题：如果文件被部署到了子目录，移动到正确位置
+                                      if [ -d "www/wwwroot/next.sunyas.com" ]; then
+                                        echo "===> 检测到文件在子目录中，正在移动到正确位置..."
+                                        mv www/wwwroot/next.sunyas.com/* . 2>/dev/null || true
+                                        mv www/wwwroot/next.sunyas.com/.* . 2>/dev/null || true
+                                        rm -rf www
+                                        echo "===> 文件已移动到正确位置"
+                                      fi
+                                      
+                                      echo "===> 最终目录结构："
+                                      ls -la
+                                      
+                                      # 验证必要文件是否存在
+                                      if [ ! -f "server.js" ]; then
+                                        echo "错误：未找到 server.js 文件"
+                                        exit 1
+                                      fi
+                                      
+                                      if [ ! -d ".next" ]; then
+                                        echo "错误：未找到 .next 目录"
+                                        exit 1
+                                      fi
                                       
                                       echo "===> 检查 Node.js 版本："
                                       node -v || echo "Node.js 未安装，需要安装 Node.js"
