@@ -50,11 +50,11 @@ pipeline {
                   npm -v
 
                   if [ -f package-lock.json ]; then
-                    echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖"
-                    npm ci
+                    echo "===> 检测到 package-lock.json，使用 npm ci 安装依赖（跳过 prepare 脚本）"
+                    npm ci --ignore-scripts
                   else
-                    echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖"
-                    npm install
+                    echo "===> 未检测到 package-lock.json，使用 npm install 安装依赖（跳过 prepare 脚本）"
+                    npm install --ignore-scripts
                   fi
                 '''
             }
