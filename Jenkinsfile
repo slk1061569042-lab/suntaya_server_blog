@@ -132,6 +132,18 @@ pipeline {
                   # 复制 standalone 文件
                   cp -r .next/standalone/* deploy-package/
                   
+                  # 复制 .next 目录（Next.js 需要它来运行）
+                  # standalone 模式仍然需要 .next 目录中的一些文件
+                  mkdir -p deploy-package/.next
+                  cp -r .next/standalone deploy-package/.next/
+                  # 复制其他必要的 .next 文件
+                  if [ -d ".next/static" ]; then
+                    cp -r .next/static deploy-package/.next/
+                  fi
+                  if [ -f ".next/BUILD_ID" ]; then
+                    cp .next/BUILD_ID deploy-package/.next/
+                  fi
+                  
                   # 复制必要的静态文件
                   if [ -d "public" ]; then
                     cp -r public deploy-package/
