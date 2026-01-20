@@ -185,7 +185,7 @@ pipeline {
                                     // 上传完成后在远程服务器执行的命令
                                     execCommand: """
                                       set -e
-                                      cd ${DEPLOY_DIR}
+                                      cd ${env.DEPLOY_DIR}
                                       
                                       echo "===> 部署完成，检查目录结构..."
                                       ls -la
@@ -230,7 +230,7 @@ pipeline {
                                       else
                                         echo "===> PM2 启动失败，尝试使用 node 直接启动"
                                         nohup node server.js > app.log 2>&1 &
-                                        echo $! > app.pid
+                                        echo \\$! > app.pid
                                         echo "===> 使用 node 直接启动"
                                       fi
                                       
@@ -246,7 +246,7 @@ pipeline {
                                       fi
                                       
                                       echo "===> 部署完成！"
-                                      echo "===> 应用运行在端口 ${APP_PORT}"
+                                      echo "===> 应用运行在端口 ${env.APP_PORT}"
                                     """
                                 )
                             ],
