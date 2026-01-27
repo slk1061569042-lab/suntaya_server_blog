@@ -64,22 +64,32 @@ export default function RemotionPlayer({
         ? lastFifteenSecondsStartFrame
         : 0;
 
-  // 使用 useEffect 持续监控播放状态（作为 onTimeUpdate 的补充）
+  // 使用 useEffect 持续监控播放状态（同时处理循环与进度持久化）
   useEffect(() => {
     if (!playerRef.current) return;
 
     const interval = setInterval(() => {
-      if (playerRef.current) {
-        const currentFrame = playerRef.current.getCurrentFrame();
-        if (currentFrame >= lastFifteenSecondsStartFrame && !enableLoopRange) {
-          playerRef.current.seekTo(lastFifteenSecondsStartFrame);
-          setTimeout(() => setEnableLoopRange(true), 50);
+      if (!playerRef.current) return;
+      const currentFrame = playerRef.current.getCurrentFrame();
+
+      // 进入最后 15 秒后切到循环播放区间
+      if (currentFrame >= lastFifteenSecondsStartFrame && !enableLoopRange) {
+        playerRef.current.seekTo(lastFifteenSecondsStartFrame);
+        setTimeout(() => setEnableLoopRange(true), 50);
+      }
+
+      // 可选：记录当前播放进度，仅在本次会话内生效
+      if (persistKey) {
+        const f = Math.round(currentFrame);
+        if (Math.abs(f - lastSavedFrameRef.current) >= PERSIST_THROTTLE_FRAMES) {
+          lastSavedFrameRef.current = f;
+          setStoredFrame(persistKey, f);
         }
       }
     }, 100);
 
     return () => clearInterval(interval);
-  }, [enableLoopRange, lastFifteenSecondsStartFrame, lastFifteenSecondsEndFrame, durationInFrames]);
+  }, [enableLoopRange, lastFifteenSecondsStartFrame, durationInFrames, persistKey]);
   
   // 动态计算响应式尺寸
   const playerDimensions = useMemo(() => {
@@ -151,51 +161,10 @@ export default function RemotionPlayer({
             autoPlay={enableLoopRange ? true : autoPlay} // 循环模式下自动播放
             loop={enableLoopRange} // 启用循环
             moveToBeginningWhenEnded={false} // 防止重置到0
-            pauseWhenFinished={false} // 不自动暂停
             inFrame={enableLoopRange ? lastFifteenSecondsStartFrame : undefined} // 限制播放范围：从450帧开始
             outFrame={enableLoopRange ? lastFifteenSecondsEndFrame : undefined} // 限制播放范围：到899帧结束
             initialFrame={initialFrame}
             acknowledgeRemotionLicense={true}
-            onTimeUpdate={(info) => {
-              if (info.frame >= lastFifteenSecondsStartFrame && !enableLoopRange && playerRef.current) {
-                playerRef.current.seekTo(lastFifteenSecondsStartFrame);
-                setTimeout(() => setEnableLoopRange(true), 50);
-              }
-              if (persistKey) {
-                const f = Math.round(info.frame);
-                if (Math.abs(f - lastSavedFrameRef.current) >= PERSIST_THROTTLE_FRAMES) {
-                  lastSavedFrameRef.current = f;
-                  setStoredFrame(persistKey, f);
-                }
-              }
-            }}
-            onEnded={() => {
-              console.log('[RemotionPlayer] 🏁 onEnded 触发 - 动画结束');
-              console.log('[RemotionPlayer] 📊 当前状态 - enableLoopRange:', enableLoopRange, 
-                'loop prop:', enableLoopRange,
-                'inFrame:', enableLoopRange ? lastFifteenSecondsStartFrame : 'undefined',
-                'outFrame:', enableLoopRange ? lastFifteenSecondsEndFrame : 'undefined');
-              
-              if (playerRef.current) {
-                const currentFrame = playerRef.current.getCurrentFrame();
-                console.log('[RemotionPlayer] 📊 当前帧:', currentFrame, '播放中:', playerRef.current.isPlaying());
-                
-                // 如果循环范围已启用，应该自动跳回 inFrame
-                if (enableLoopRange) {
-                  console.log('[RemotionPlayer] ⚠️ 循环范围已启用但 onEnded 触发，可能需要手动跳转');
-                  if (currentFrame >= lastFifteenSecondsEndFrame) {
-                    console.log('[RemotionPlayer] 🔄 手动跳转到', lastFifteenSecondsStartFrame);
-                    playerRef.current.seekTo(lastFifteenSecondsStartFrame);
-                    setTimeout(() => {
-                      if (playerRef.current && !playerRef.current.isPlaying()) {
-                        playerRef.current.play();
-                        console.log('[RemotionPlayer] ▶️ 重新开始播放');
-                      }
-                    }, 10);
-                  }
-                }
-              }
-            }}
             style={{
               width: '100%',
               maxWidth: `${playerDimensions.width}px`,

@@ -106,7 +106,7 @@ export const JenkinsPipelineDemo: React.FC = () => {
             { icon: '⚙️', title: '自动化', desc: '代码提交即自动构建部署' },
             { icon: '📊', title: '可视化', desc: '清晰的构建流程和状态' },
             { icon: '🔄', title: '可重复', desc: '每次构建环境一致' },
-          ].map((item) => {
+          ].map((item, index) => {
             const cardStartFrame = 3 * fps + index * 0.8 * fps;
             const cardOpacity = interpolate(
               frame - cardStartFrame,

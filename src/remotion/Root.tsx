@@ -267,7 +267,8 @@ export const RemotionRoot = () => {
 };
 
 // 组件映射，用于 Player
-export const compositionComponents: Record<string, React.ComponentType<Record<string, unknown>>> = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const compositionComponents: Record<string, React.ComponentType<any>> = {
   'git-workflow-demo': GitWorkflowDemo,
   'staging-area-demo': StagingAreaDemo,
   'conflict-resolution-demo': ConflictResolutionDemo,

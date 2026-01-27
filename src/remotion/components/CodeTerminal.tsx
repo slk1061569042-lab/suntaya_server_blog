@@ -5,12 +5,14 @@ type CodeTerminalProps = {
   command: string;
   output?: string;
   startFrame?: number;
+  durationInFrames?: number;
 };
 
 export const CodeTerminal: React.FC<CodeTerminalProps> = ({
   command,
   output,
   startFrame = 0,
+  durationInFrames = 180,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -26,7 +28,11 @@ export const CodeTerminal: React.FC<CodeTerminalProps> = ({
   const displayedCommand = command.slice(0, commandChars);
 
   // 输出显示（命令完成后）
-  const outputStartFrame = (command.length / charsPerFrame) * fps;
+  const effectiveDuration = durationInFrames ?? 180;
+  const outputStartFrame = Math.min(
+    (command.length / charsPerFrame) * fps,
+    effectiveDuration
+  );
   const outputOpacity = interpolate(
     relativeFrame,
     [outputStartFrame, outputStartFrame + 0.5 * fps],

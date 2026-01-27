@@ -13,6 +13,7 @@ type FlowStage = {
 type FlowDiagramProps = {
   stages: FlowStage[];
   startFrame: number;
+  durationInFrames?: number;
   width?: number;
   height?: number;
 };

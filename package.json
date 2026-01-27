@@ -11,7 +11,8 @@
     "prebuild": "npm run type-check",
     "prepare": "husky install || true",
     "commit": "git commit",
-    "commit:msg": "node scripts/generate-commit-msg.js"
+    "commit:msg": "node scripts/generate-commit-msg.js",
+    "pre-push": "npm run lint && npm run type-check && npm run build"
   },
   "dependencies": {
     "@remotion/player": "^4.0.0",
