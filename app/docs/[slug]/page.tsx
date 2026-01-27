@@ -1,8 +1,10 @@
 import { notFound } from 'next/navigation';
 import { getDocBySlug, getAllDocs } from '@/lib/docs';
 import { processMarkdown, getMarkdownFile, type TableOfContentsItem } from '@/lib/markdown';
+import { getVideoConfig } from '@/lib/video-mappings';
 import Sidebar from '@/components/Sidebar';
 import TableOfContents from '@/components/TableOfContents';
+import RemotionPlayer from '@/components/RemotionPlayer';
 
 export async function generateStaticParams() {
   const docs = getAllDocs();
@@ -32,6 +34,9 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
     notFound();
   }
 
+  // 获取视频配置
+  const videoConfig = doc.videoSlug ? getVideoConfig(doc.videoSlug) : null;
+
   return (
     <div className="min-h-screen flex">
       <Sidebar />
@@ -41,12 +46,41 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             <h1 className="text-4xl md:text-5xl font-bold text-[#F1F5F9] mb-6">
               {doc.title}
             </h1>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-8">
               <span className="px-4 py-1.5 bg-[#3B82F6]/20 text-[#3B82F6] rounded-full text-sm font-medium">
                 {doc.category}
               </span>
             </div>
+            
+            {/* 视频演示 - 重要模块在顶部显示 */}
+            {videoConfig && videoConfig.showInHeader && (
+              <div className="mb-10">
+                <RemotionPlayer
+                  compositionId={videoConfig.compositionId}
+                  width={videoConfig.width}
+                  height={videoConfig.height}
+                  durationInFrames={videoConfig.durationInFrames}
+                  fps={videoConfig.fps}
+                  className="w-full"
+                />
+              </div>
+            )}
           </header>
+          
+          {/* 视频演示 - 非重要模块在内容区域顶部显示 */}
+          {videoConfig && !videoConfig.showInHeader && (
+            <div className="mb-8">
+              <RemotionPlayer
+                compositionId={videoConfig.compositionId}
+                width={videoConfig.width}
+                height={videoConfig.height}
+                durationInFrames={videoConfig.durationInFrames}
+                fps={videoConfig.fps}
+                className="w-full"
+              />
+            </div>
+          )}
+          
           <div
             className="markdown-content glass-card rounded-2xl p-8 md:p-12"
             dangerouslySetInnerHTML={{ __html: html }}

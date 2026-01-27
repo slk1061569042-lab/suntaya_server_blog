@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getAllCategories, getDocsByCategory, getAllDocs } from '@/lib/docs';
 import DocCard from '@/components/DocCard';
+import RemotionPlayer from '@/components/RemotionPlayer';
 
 export default function HomePage() {
   const categories = getAllCategories();
@@ -9,32 +10,21 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#0A0E1A]">
       {/* Hero Section - Git 可视化学习入口 */}
-      <section className="relative py-24 md:py-32 overflow-hidden">
-        {/* Background gradient - 暗色玻璃风格 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB]/20 via-[#3B82F6]/15 to-[#F97316]/20"></div>
-        
+      <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-[#F1F5F9] mb-6 leading-tight">
-              Git 完整学习指南
-            </h1>
-            <p className="text-xl md:text-2xl text-[#CBD5E1] mb-10 max-w-3xl mx-auto leading-relaxed">
-              通过交互式可视化学习 Git 命令，掌握工作区、暂存区、本地仓库和远程仓库之间的数据流转
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link
-                href="/git-visualizer"
-                className="px-8 py-4 bg-[#F97316] hover:bg-[#EA580C] text-white rounded-xl font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
-              >
-                开始可视化练习 →
-              </Link>
-              <Link
-                href="/docs"
-                className="px-8 py-4 glass-card text-[#3B82F6] rounded-xl font-semibold text-lg transition-all duration-200 hover:shadow-lg cursor-pointer border border-[#3B82F6]/30 hover:border-[#3B82F6]/50"
-              >
-                查看所有文档
-              </Link>
-            </div>
+          {/* Remotion 动画背景 */}
+          <div className="relative w-full" style={{ minHeight: '400px' }}>
+            <RemotionPlayer
+              compositionId="git-hero-demo"
+              width={1280}
+              height={600}
+              durationInFrames={900}
+              fps={30}
+              autoPlay={true}
+              loop={false}
+              persistKey="hero"
+              className="w-full"
+            />
           </div>
         </div>
       </section>
