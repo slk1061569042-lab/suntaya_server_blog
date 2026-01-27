@@ -21,7 +21,6 @@ export default function HomePage() {
               durationInFrames={900}
               fps={30}
               autoPlay={true}
-              loop={false}
               persistKey="hero"
               className="w-full"
             />
