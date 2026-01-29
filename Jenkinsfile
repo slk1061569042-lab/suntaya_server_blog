@@ -133,6 +133,13 @@ pipeline {
                 sh '''
                   set -e
                   
+                  echo "===> 当前 Build 标记（工作区源代码）:"
+                  if [ -f "app/page.tsx" ]; then
+                    grep "Build:" app/page.tsx || echo "未在 app/page.tsx 中找到 Build 标记"
+                  else
+                    echo "未找到 app/page.tsx 文件"
+                  fi
+                  
                   # 检查构建输出
                   if [ ! -d ".next" ]; then
                     echo "错误：未找到 .next 目录，构建失败"
@@ -169,6 +176,9 @@ pipeline {
                   # 复制 package.json（用于 PM2 启动）
                   cp package.json deploy-package/
                   
+                  echo "===> 部署包中的 Build 标记："
+                  grep -R "Build:" -n deploy-package || echo "部署包中未找到 Build 标记"
+                  
                   echo "===> 部署包内容："
                   ls -la deploy-package
                 '''
@@ -199,7 +209,7 @@ pipeline {
                                         cleanRemote: true,
                                         // 上传完成后在远程服务器执行的命令
                                         // 使用单引号字符串，避免 Groovy 解析问题，通过字符串连接插入变量值
-                                        execCommand: """set -e && cd '${deployDir}' && echo '===> 部署完成，检查目录结构...' && ls -la && if [ -d 'www/wwwroot/next.sunyas.com' ]; then echo '===> 检测到文件在子目录中，正在移动到正确位置...' && mv www/wwwroot/next.sunyas.com/* . 2>/dev/null || true && mv www/wwwroot/next.sunyas.com/.* . 2>/dev/null || true && rm -rf www && echo '===> 文件已移动到正确位置'; fi && echo '===> 最终目录结构：' && ls -la && if [ ! -f 'server.js' ]; then echo '错误：未找到 server.js 文件' && exit 1; fi && if [ ! -d '.next' ]; then echo '错误：未找到 .next 目录' && exit 1; fi && echo '===> 检查 Node.js 版本：' && node -v || echo 'Node.js 未安装，需要安装 Node.js' && echo '===> 检查 PM2：' && pm2 -v || echo 'PM2 未安装，需要安装 PM2' && pm2 stop next-sunyas || echo '进程不存在，跳过停止' && pm2 delete next-sunyas || echo '进程不存在，跳过删除' && echo '===> 启动 Next.js 应用...' && (pm2 start server.js --name next-sunyas --update-env && echo '===> PM2 启动成功' || (echo '===> PM2 启动失败，尝试使用 node 直接启动' && nohup node server.js > app.log 2>&1 & echo \$! > app.pid && echo '===> 使用 node 直接启动')) && pm2 save || echo 'PM2 save 失败，跳过' && sleep 2 && (pm2 list | grep -q 'next-sunyas.*online' && echo '===> 应用已成功启动' || echo '===> 警告：应用可能未正常启动，请检查 PM2 日志') && echo '===> 部署完成！' && echo '===> 应用运行在端口 ${appPort}'"""
+                                        execCommand: """set -e && cd '${deployDir}' && echo '===> 部署完成，检查目录结构...' && ls -la && if [ -d 'www/wwwroot/next.sunyas.com' ]; then echo '===> 检测到文件在子目录中，正在移动到正确位置...' && mv www/wwwroot/next.sunyas.com/* . 2>/dev/null || true && mv www/wwwroot/next.sunyas.com/.* . 2>/dev/null || true && rm -rf www && echo '===> 文件已移动到正确位置'; fi && echo '===> 最终目录结构：' && ls -la && echo '===> 服务器部署目录中的 Build 标记：' && if grep -R "Build:" -n .; then echo '===> 上述为当前 Build 标记'; else echo '服务器目录中未找到 Build 标记'; fi && if [ ! -f 'server.js' ]; then echo '错误：未找到 server.js 文件' && exit 1; fi && if [ ! -d '.next' ]; then echo '错误：未找到 .next 目录' && exit 1; fi && echo '===> 检查 Node.js 版本：' && node -v || echo 'Node.js 未安装，需要安装 Node.js' && echo '===> 检查 PM2：' && pm2 -v || echo 'PM2 未安装，需要安装 PM2' && pm2 stop next-sunyas || echo '进程不存在，跳过停止' && pm2 delete next-sunyas || echo '进程不存在，跳过删除' && echo '===> 启动 Next.js 应用...' && (pm2 start server.js --name next-sunyas --update-env && echo '===> PM2 启动成功' || (echo '===> PM2 启动失败，尝试使用 node 直接启动' && nohup node server.js > app.log 2>&1 & echo \$! > app.pid && echo '===> 使用 node 直接启动')) && pm2 save || echo 'PM2 save 失败，跳过' && sleep 2 && (pm2 list | grep -q 'next-sunyas.*online' && echo '===> 应用已成功启动' || echo '===> 警告：应用可能未正常启动，请检查 PM2 日志') && echo '===> 验证 3000 端口上的 Build 标记（本机直连 Node 服务）' && if curl -s http://127.0.0.1:${appPort} | grep "Build:"; then echo '===> 上述为 HTTP 响应中的 Build 标记'; else echo '未在 HTTP 响应中找到 Build 文本'; fi && echo '===> 部署完成！' && echo '===> 应用运行在端口 ${appPort}'"""
                                     )
                                 ],
                                 usePromotionTimestamp: false,
