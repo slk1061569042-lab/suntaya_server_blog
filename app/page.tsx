@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getAllCategories, getDocsByCategory, getAllDocs } from '@/lib/docs';
 import DocCard from '@/components/DocCard';
-import RemotionPlayer from '@/components/RemotionPlayer';
+import HomeHeroRemotion from '@/components/HomeHeroRemotion';
 
 export default function HomePage() {
   const categories = getAllCategories();
@@ -10,23 +10,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#0A0E1A]">
       {/* Hero Section - Git 可视化学习入口 */}
-      <section className="relative py-8 md:py-12 lg:py-16 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* Remotion 动画背景 */}
-          <div className="relative w-full" style={{ minHeight: '400px' }}>
-            <RemotionPlayer
-              compositionId="git-hero-demo"
-              width={1280}
-              height={600}
-              durationInFrames={900}
-              fps={30}
-              autoPlay={true}
-              persistKey="hero"
-              className="w-full"
-            />
-          </div>
-        </div>
-      </section>
+      <HomeHeroRemotion />
 
       {/* Git 可视化预览卡片 */}
       <section className="py-12 relative">
