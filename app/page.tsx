@@ -108,6 +108,21 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* 版本号标记，用于确认部署是否生效 */}
+      <div
+        style={{
+          position: 'fixed',
+          right: 8,
+          bottom: 8,
+          fontSize: 12,
+          opacity: 0.6,
+          color: '#94A3B8',
+          pointerEvents: 'none',
+        }}
+      >
+        Build: 2026-01-29-01
+      </div>
     </div>
   );
 }
