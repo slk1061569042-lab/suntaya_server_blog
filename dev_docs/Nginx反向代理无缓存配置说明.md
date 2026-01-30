@@ -2,7 +2,7 @@
 
 ## 何时需要
 
-当 **部署后直连 `curl http://127.0.0.1:3000` 已是新 Build，但浏览器访问域名仍显示旧版** 时，多半是 Nginx 对该站点做了代理缓存（`proxy_cache`），请求没有到达 Node，直接返回了缓存里的旧响应。
+当 **部署后直连 `curl http://127.0.0.1:3001` 已是新 Build，但浏览器访问域名仍显示旧版** 时，多半是 Nginx 对该站点做了代理缓存（`proxy_cache`），请求没有到达 Node，直接返回了缓存里的旧响应。
 
 ## 如何确认
 
@@ -36,28 +36,28 @@ cat /www/server/panel/vhost/nginx/next.sunyas.com.conf 2>/dev/null
 
 ## 常见错误：Connection refused（111）
 
-当 Nginx 报错 **`connect() failed (111: Connection refused) while connecting to upstream ... http://127.0.0.1:3000`** 时，表示 **本机 3000 端口没有进程在监听**，即 Next.js（PM2）未运行或已退出。
+当 Nginx 报错 **`connect() failed (111: Connection refused) while connecting to upstream ... http://127.0.0.1:3001`** 时，表示 **本机 3001 端口没有进程在监听**，即 Next.js（PM2）未运行或已退出。（服务器上 3000 已被 Supabase Studio 占用，Next 使用 3001。）
 
 ### 处理步骤（在服务器上执行）
 
 1. **进入部署目录并启动应用**（Jenkins 部署目录为 `/www/wwwroot/next.sunyas.com`）：
    ```bash
-   cd /www/wwwroot/next.sunyas.com
-   pm2 start server.js --name next-sunyas
-   pm2 save
-   ```
+  cd /www/wwwroot/next.sunyas.com
+  PORT=3001 HOSTNAME=127.0.0.1 pm2 start server.js --name next-sunyas
+  pm2 save
+```
 2. **若 PM2 里已有同名应用但已停掉**，可先删再起：
    ```bash
    cd /www/wwwroot/next.sunyas.com
    pm2 delete next-sunyas 2>/dev/null || true
-   pm2 start server.js --name next-sunyas
+   PORT=3001 HOSTNAME=127.0.0.1 pm2 start server.js --name next-sunyas
    pm2 save
-   ```
-3. **确认 3000 已监听**：
+```
+3. **确认 3001 已监听**（服务器上 Next 使用 3001，3000 被 Supabase Studio 占用）：
    ```bash
    pm2 list
-   lsof -i:3000
-   curl -s http://127.0.0.1:3000 | head -5
+   lsof -i:3001
+   curl -s http://127.0.0.1:3001 | head -5
    ```
    若 `pm2 list` 里 next-sunyas 为 online 且 `curl` 有正常 HTML，则 Nginx 再访问应恢复正常。
 
@@ -76,4 +76,4 @@ cat /www/server/panel/vhost/nginx/next.sunyas.com.conf 2>/dev/null
 
 ## 相关排查
 
-若直连 3000 仍是旧 Build，则问题在进程/部署目录，而非 Nginx 缓存。完整诊断步骤见项目内「发布后前端仍显示旧版」相关计划/文档。
+若直连 3001 仍是旧 Build，则问题在进程/部署目录，而非 Nginx 缓存。完整诊断步骤见项目内「发布后前端仍显示旧版」相关计划/文档。
