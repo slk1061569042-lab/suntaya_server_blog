@@ -134,21 +134,21 @@ export default function RemotionPlayer({
   return (
     <div className={`relative ${className}`}>
       {/* Mac 风格容器 */}
-      <div className="glass-card rounded-2xl overflow-hidden shadow-2xl border border-white/20">
-        {/* Mac 窗口标题栏 */}
-        <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-[#1E293B]/80 to-[#0F172A]/80 border-b border-white/10">
+      <div className="glass-card rounded-2xl overflow-hidden shadow-2xl border border-[#E2E8F0]">
+        {/* Mac 窗口标题栏 - 浅色主题 */}
+        <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-[#F1F5F9] to-[#E2E8F0] border-b border-[#E2E8F0]">
           <div className="flex gap-2">
             <div className="w-3 h-3 rounded-full bg-[#FF5F57]"></div>
             <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
             <div className="w-3 h-3 rounded-full bg-[#28CA42]"></div>
           </div>
           <div className="flex-1 text-center">
-            <span className="text-xs text-[#CBD5E1] font-medium">视频演示</span>
+            <span className="text-xs text-[#475569] font-medium">视频演示</span>
           </div>
         </div>
 
         {/* 视频播放器 */}
-        <div className="bg-gradient-to-br from-[#0F172A]/95 to-[#1E293B]/95 p-4">
+        <div className="bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] p-4">
           <Player
             key={enableLoopRange ? 'looping' : 'normal'} // 当启用循环范围时，重新渲染以应用 inFrame/outFrame
             ref={playerRef}

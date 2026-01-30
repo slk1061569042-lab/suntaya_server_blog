@@ -21,7 +21,7 @@ export default function GitVisualizerPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A] pt-0">
+    <div className="min-h-screen bg-[#F8FAFC] pt-0">
       <GitFlowDiagram />
     </div>
   );

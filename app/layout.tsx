@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
-      <body className="antialiased bg-[#0A0E1A] text-[#E2E8F0]">
+      <body className="antialiased bg-[#F8FAFC] text-[#1E293B]">
         <Navbar />
         {children}
       </body>

@@ -43,7 +43,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <article className="prose prose-lg dark:prose-invert max-w-none">
           <header className="mb-10">
-            <h1 className="text-4xl md:text-5xl font-bold text-[#F1F5F9] mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-6">
               {doc.title}
             </h1>
             <div className="flex items-center gap-4 mb-8">

@@ -9,10 +9,10 @@ export default function DocsPage() {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#F1F5F9] mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4">
             所有文档
           </h1>
-          <p className="text-xl text-[#CBD5E1]">
+          <p className="text-xl text-[#475569]">
             共 {allDocs.length} 篇文档，涵盖 Git 的各个方面
           </p>
         </div>
@@ -21,7 +21,7 @@ export default function DocsPage() {
           const docs = getDocsByCategory(category);
           return (
             <div key={category} className="mb-16">
-              <h2 className="text-2xl md:text-3xl font-semibold text-[#F1F5F9] mb-8">
+              <h2 className="text-2xl md:text-3xl font-semibold text-[#0F172A] mb-8">
                 {category}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -9,12 +9,12 @@ export default function Sidebar() {
   const categories = getAllCategories();
 
   return (
-    <aside className="w-64 glass border-r border-[#1E293B] h-screen sticky top-24 overflow-y-auto">
+    <aside className="w-64 glass border-r border-[#E2E8F0] h-screen sticky top-24 overflow-y-auto">
       <div className="p-4">
         <nav className="space-y-6">
           {categories.map(category => (
             <div key={category}>
-              <h3 className="text-sm font-semibold text-[#F1F5F9] mb-2 uppercase tracking-wide">
+              <h3 className="text-sm font-semibold text-[#0F172A] mb-2 uppercase tracking-wide">
                 {category}
               </h3>
               <ul className="space-y-1">
@@ -25,7 +25,7 @@ export default function Sidebar() {
                       className={`block px-3 py-2 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
                         pathname === `/docs/${doc.slug}`
                           ? 'bg-[#3B82F6]/20 text-[#3B82F6] font-medium'
-                          : 'text-[#CBD5E1] hover:bg-[#3B82F6]/10 hover:text-[#3B82F6]'
+                          : 'text-[#475569] hover:bg-[#3B82F6]/10 hover:text-[#3B82F6]'
                       }`}
                     >
                       {doc.title}

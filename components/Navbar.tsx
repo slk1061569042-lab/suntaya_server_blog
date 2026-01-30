@@ -24,13 +24,13 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-6">
             <Link
               href="/"
-              className="text-[#E2E8F0] hover:text-[#3B82F6] transition-colors duration-200 font-medium"
+              className="text-[#1E293B] hover:text-[#3B82F6] transition-colors duration-200 font-medium"
             >
               首页
             </Link>
             <Link
               href="/docs"
-              className="text-[#E2E8F0] hover:text-[#3B82F6] transition-colors duration-200 font-medium"
+              className="text-[#1E293B] hover:text-[#3B82F6] transition-colors duration-200 font-medium"
             >
               所有文档
             </Link>
@@ -39,7 +39,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-[#E2E8F0] hover:text-[#3B82F6] transition-colors duration-200"
+              className="text-[#1E293B] hover:text-[#3B82F6] transition-colors duration-200"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

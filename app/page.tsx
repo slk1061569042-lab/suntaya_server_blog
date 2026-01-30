@@ -8,7 +8,7 @@ export default function HomePage() {
   const featuredDocs = getAllDocs().slice(0, 6);
 
   return (
-    <div className="min-h-screen bg-[#0A0E1A]">
+    <div className="min-h-screen bg-[#F8FAFC]">
       {/* Hero Section - Git 可视化学习入口 */}
       <HomeHeroRemotion />
 
@@ -16,35 +16,35 @@ export default function HomePage() {
       <section className="py-12 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="glass-card rounded-2xl p-8 md:p-12 relative overflow-hidden">
-            {/* Background gradient - 暗色玻璃风格 */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB]/30 via-[#3B82F6]/20 to-[#F97316]/30"></div>
+            {/* Background gradient - 高级浅色 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#2563EB]/10 via-[#3B82F6]/8 to-[#F97316]/10"></div>
             <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-[#F1F5F9] mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-4">
                 Git 命令可视化学习
               </h2>
-              <p className="text-xl text-[#CBD5E1] mb-8 max-w-2xl">
+              <p className="text-xl text-[#475569] mb-8 max-w-2xl">
                 通过交互式动画学习 Git 命令及其参数，理解工作区、暂存区、本地仓库和远程仓库之间的数据流转。掌握基础命令链：add → commit → push → pull
               </p>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div className="glass-card rounded-xl p-4 border border-[#3B82F6]/30">
                   <div className="text-2xl font-bold text-[#3B82F6] mb-2">工作区</div>
-                  <div className="text-sm text-[#CBD5E1]">git add -A</div>
-                  <div className="text-sm text-[#CBD5E1]">git status</div>
+                  <div className="text-sm text-[#475569]">git add -A</div>
+                  <div className="text-sm text-[#475569]">git status</div>
                 </div>
                 <div className="glass-card rounded-xl p-4 border border-[#F97316]/30">
                   <div className="text-2xl font-bold text-[#F97316] mb-2">暂存区</div>
-                  <div className="text-sm text-[#CBD5E1]">git commit -m</div>
-                  <div className="text-sm text-[#CBD5E1]">git reset</div>
+                  <div className="text-sm text-[#475569]">git commit -m</div>
+                  <div className="text-sm text-[#475569]">git reset</div>
                 </div>
                 <div className="glass-card rounded-xl p-4 border border-[#10B981]/30">
                   <div className="text-2xl font-bold text-[#10B981] mb-2">本地仓库</div>
-                  <div className="text-sm text-[#CBD5E1]">git log</div>
-                  <div className="text-sm text-[#CBD5E1]">git reset --soft</div>
+                  <div className="text-sm text-[#475569]">git log</div>
+                  <div className="text-sm text-[#475569]">git reset --soft</div>
                 </div>
                 <div className="glass-card rounded-xl p-4 border border-[#8B5CF6]/30">
                   <div className="text-2xl font-bold text-[#8B5CF6] mb-2">远程仓库</div>
-                  <div className="text-sm text-[#CBD5E1]">git push</div>
-                  <div className="text-sm text-[#CBD5E1]">git pull</div>
+                  <div className="text-sm text-[#475569]">git push</div>
+                  <div className="text-sm text-[#475569]">git pull</div>
                 </div>
               </div>
               <Link
@@ -61,7 +61,7 @@ export default function HomePage() {
       {/* Featured Docs */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#F1F5F9] mb-12 text-center">精选文档</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-12 text-center">精选文档</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredDocs.map((doc) => (
               <DocCard key={doc.slug} doc={doc} />
@@ -73,13 +73,13 @@ export default function HomePage() {
       {/* Categories */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#F1F5F9] mb-12 text-center">按分类浏览</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#0F172A] mb-12 text-center">按分类浏览</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((category) => {
               const docs = getDocsByCategory(category);
               return (
                 <div key={category} className="glass-card rounded-2xl p-6 hover:shadow-xl transition-all duration-200 cursor-pointer">
-                  <h3 className="text-xl font-semibold text-[#F1F5F9] mb-4">
+                  <h3 className="text-xl font-semibold text-[#0F172A] mb-4">
                     {category}
                   </h3>
                   <ul className="space-y-2">
@@ -87,7 +87,7 @@ export default function HomePage() {
                       <li key={doc.slug}>
                         <Link
                           href={`/docs/${doc.slug}`}
-                          className="text-[#CBD5E1] hover:text-[#3B82F6] transition-colors duration-200 block"
+                          className="text-[#475569] hover:text-[#3B82F6] transition-colors duration-200 block"
                         >
                           {doc.title}
                         </Link>
@@ -117,7 +117,7 @@ export default function HomePage() {
           bottom: 8,
           fontSize: 12,
           opacity: 0.6,
-          color: '#94A3B8',
+          color: '#64748B',
           pointerEvents: 'none',
         }}
       >

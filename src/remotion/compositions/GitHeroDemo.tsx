@@ -144,34 +144,34 @@ export const GitHeroDemo: React.FC<GitHeroDemoProps> = ({
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: '#0A0E1A',
+        backgroundColor: '#F8FAFC',
         fontFamily: 'system-ui, -apple-system, sans-serif',
         overflow: 'hidden',
       }}
     >
-      {/* 背景层：多层径向渐变 */}
+      {/* 背景层：高级浅色径向渐变 */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(circle at 20% 30%, rgba(59,130,246,0.4), transparent 50%), ' +
-            'radial-gradient(circle at 80% 70%, rgba(248,113,113,0.3), transparent 50%), ' +
-            'radial-gradient(circle at 50% 50%, rgba(139,92,246,0.2), transparent 60%), ' +
-            'linear-gradient(to bottom right, #0A0E1A, #020617)',
+            'radial-gradient(circle at 20% 30%, rgba(59,130,246,0.12), transparent 50%), ' +
+            'radial-gradient(circle at 80% 70%, rgba(248,113,113,0.08), transparent 50%), ' +
+            'radial-gradient(circle at 50% 50%, rgba(139,92,246,0.06), transparent 60%), ' +
+            'linear-gradient(to bottom right, #F8FAFC, #F1F5F9)',
         }}
       />
 
-      {/* 火焰光晕层 - 底部橙红色渐变，带轻微呼吸 */}
+      {/* 底部暖色光晕 - 浅色主题减弱 */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(ellipse 80% 60% at 50% 105%, rgba(249,115,22,0.35), transparent 55%), ' +
-            'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(234,88,12,0.25), transparent 45%), ' +
-            'radial-gradient(ellipse 100% 50% at 50% 110%, rgba(251,191,36,0.12), transparent 50%)',
-          opacity: 0.85 + Math.sin(frame / 24) * 0.12,
+            'radial-gradient(ellipse 80% 60% at 50% 105%, rgba(249,115,22,0.12), transparent 55%), ' +
+            'radial-gradient(ellipse 60% 40% at 50% 100%, rgba(234,88,12,0.08), transparent 45%), ' +
+            'radial-gradient(ellipse 100% 50% at 50% 110%, rgba(251,191,36,0.05), transparent 50%)',
+          opacity: 0.9 + Math.sin(frame / 24) * 0.08,
           pointerEvents: 'none',
         }}
       />
@@ -225,7 +225,7 @@ export const GitHeroDemo: React.FC<GitHeroDemoProps> = ({
           position: 'absolute',
           inset: 0,
           backgroundImage:
-            'linear-gradient(rgba(15,23,42,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.6) 1px, transparent 1px)',
+            'linear-gradient(rgba(148,163,184,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.35) 1px, transparent 1px)',
           backgroundSize: '50px 50px',
           opacity: 0.3,
           transform: `translate(${interpolate(
@@ -520,7 +520,7 @@ export const GitHeroDemo: React.FC<GitHeroDemoProps> = ({
           style={{
             fontSize: 64,
             fontWeight: 'bold',
-            color: '#F1F5F9',
+            color: '#0F172A',
             marginBottom: 24,
             textAlign: 'center',
             opacity: interpolate(
@@ -556,7 +556,7 @@ export const GitHeroDemo: React.FC<GitHeroDemoProps> = ({
         <div
           style={{
             fontSize: 24,
-            color: '#CBD5E1',
+            color: '#475569',
             textAlign: 'center',
             maxWidth: 800,
             marginBottom: 40,
