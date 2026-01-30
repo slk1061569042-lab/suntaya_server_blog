@@ -65,6 +65,15 @@ cat /www/server/panel/vhost/nginx/next.sunyas.com.conf 2>/dev/null
 
 ---
 
+## 部署目录嵌套（/www/.../next.sunyas.com/www/.../next.sunyas.com）
+
+若服务器上出现 **`/www/wwwroot/next.sunyas.com/www/wwwroot/next.sunyas.com`** 这种重复路径，多半是 Jenkins Publish Over SSH 的「Remote directory」与该流水线里的 `remoteDirectory` 被拼了两次。
+
+- **处理**：Jenkins 里该 SSH 服务器若已配置「Remote directory」为 `/www/wwwroot/next.sunyas.com`，则流水线中应设 `remoteDirectory: '.'`，文件会直接进该目录，不再嵌套。
+- **兜底**：流水线部署脚本会检测嵌套并执行展平（`cp -a www/wwwroot/next.sunyas.com/. .`），展平后 PM2 从部署根目录启动即可。
+
+---
+
 ## 相关排查
 
 若直连 3000 仍是旧 Build，则问题在进程/部署目录，而非 Nginx 缓存。完整诊断步骤见项目内「发布后前端仍显示旧版」相关计划/文档。
