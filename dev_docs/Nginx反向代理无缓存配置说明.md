@@ -34,6 +34,32 @@ cat /www/server/panel/vhost/nginx/next.sunyas.com.conf 2>/dev/null
    nginx -t && nginx -s reload
    ```
 
+## Jenkins 发布失败：Failed to delete directory [extensions]
+
+当 Jenkins 报错 **`Exception when publishing, exception message [Failed to delete directory [extensions]]`** 时，表示 Publish Over SSH 在执行 **cleanRemote**（上传前清空远程目录）时，无法删除服务器上的 `extensions` 目录。
+
+### 原因
+
+- 部署目录（如 `/www/wwwroot/next.sunyas.com`）下存在 `extensions` 目录，可能由 Nginx、PM2 或其它服务创建，权限或属主与 SSH 用户不一致，导致无法删除。
+- 或该目录被进程占用、只读等。
+
+### 处理（在服务器 115.190.54.220 上执行）
+
+1. **查看 `extensions` 属主与权限**：
+   ```bash
+   ls -la /www/wwwroot/next.sunyas.com/
+   ls -la /www/wwwroot/next.sunyas.com/extensions 2>/dev/null
+   ```
+2. **统一属主并保证可写可删**（SSH 用户为 root 时）：
+   ```bash
+   chown -R root:root /www/wwwroot/next.sunyas.com
+   chmod -R u+rwx /www/wwwroot/next.sunyas.com
+   ```
+3. **若仍无法删除**，可先停掉占用该目录的进程（如 PM2 next-sunyas），再执行上述 chown/chmod，然后重试 Jenkins 部署。
+4. **若 `extensions` 必须保留且不能删**：可将 Jenkinsfile 中该 transfer 的 **cleanRemote** 改为 **false**，并在 **execCommand** 开头用脚本只删除本次部署需要的项（如 `.next`、`server.js`、`public`、`package.json`、`ecosystem.config.cjs`），不删 `extensions`；这样上传会覆盖/追加文件，但不会动 `extensions`。（需注意旧文件残留，一般仍建议以可删为准。）
+
+---
+
 ## 常见错误：Connection refused（111）
 
 当 Nginx 报错 **`connect() failed (111: Connection refused) while connecting to upstream ... http://127.0.0.1:3001`** 时，表示 **本机 3001 端口没有进程在监听**，即 Next.js（PM2）未运行或已退出。（服务器上 3000 已被 Supabase Studio 占用，Next 使用 3001。）
