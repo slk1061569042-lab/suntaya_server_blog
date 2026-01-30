@@ -120,9 +120,12 @@ pipeline {
 
         stage('Build Next.js') {
             steps {
-                echo '正在构建 Next.js 项目...'
+                echo '正在构建 Next.js 项目（无缓存，每次全新构建）...'
                 sh '''
                   set -e
+                  # 删除上次构建产物，确保本次为全新构建，不使用静态缓存
+                  rm -rf .next
+                  echo "===> 已清除 .next，开始全新构建"
                   # 设置生产环境变量（仅用于构建）
                   export NODE_ENV=production
                   npm run build

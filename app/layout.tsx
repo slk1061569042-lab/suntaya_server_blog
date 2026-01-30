@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
+/** 禁用静态缓存：每次请求都服务端重新渲染，不输出静态 HTML 缓存 */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Git 文档 - 完整的 Git 学习指南",
   description: "详细的 Git 教程，包含冲突解决、工作流程、暂存区等核心概念",
