@@ -17,18 +17,53 @@ cat /www/server/panel/vhost/nginx/next.sunyas.com.conf 2>/dev/null
 
 ## 参考配置
 
-见同目录下的 **`nginx-next-no-cache.conf.example`**，将其中 `location /` 的写法合并到你的站点配置中，重点保证：
+见同目录下的 **`nginx-next-no-cache.conf.example`**，其中包含：
 
-- `proxy_cache off;` 或对该 location 不启用 `proxy_cache`。
+- 主 `location ^~ /` 已设 `proxy_cache off;`
+- **静态资源** 的嵌套 location（`.*\.(css|js|jpg|...)`）也改为 **`proxy_cache off;`**，去掉了 `proxy_cache next_sunyas_com_cache`、`proxy_cache_valid`、`proxy_ignore_headers` 等，避免部署后仍看到旧版样式/脚本/图片。
 
-## 应用步骤
+## 应用步骤（在服务器上执行）
 
-1. 在服务器上编辑对应站点 Nginx 配置（宝塔面板或 `/www/server/panel/vhost/nginx/` 下对应 `.conf`）。
-2. 在 `server { ... }` 内、转发到 3000 的 `location /` 中加上 `proxy_cache off;`（或按示例替换整个 `location /`）。
-3. 测试并重载：
+1. 编辑站点 Nginx 配置：
+   - 宝塔：网站 → next.sunyas.com → 设置 → 配置文件  
+   - 或 SSH：`vim /www/server/panel/vhost/nginx/next.sunyas.com.conf`
+2. 找到 **#PROXY-CONF-START** 到 **#PROXY-CONF-END** 之间的整段（即 `location ^~ / { ... }` 含内部嵌套的 `location ~ .*\.(css|js|...)`）。
+3. 将整段替换为 **`nginx-next-no-cache.conf.example`** 中「整块替换示例」里的内容（从 `location ^~ / {` 到对应的 `}`）。
+4. 保存后测试并重载：
    ```bash
    nginx -t && nginx -s reload
    ```
+
+## 常见错误：Connection refused（111）
+
+当 Nginx 报错 **`connect() failed (111: Connection refused) while connecting to upstream ... http://127.0.0.1:3000`** 时，表示 **本机 3000 端口没有进程在监听**，即 Next.js（PM2）未运行或已退出。
+
+### 处理步骤（在服务器上执行）
+
+1. **进入部署目录并启动应用**（Jenkins 部署目录为 `/www/wwwroot/next.sunyas.com`）：
+   ```bash
+   cd /www/wwwroot/next.sunyas.com
+   pm2 start server.js --name next-sunyas
+   pm2 save
+   ```
+2. **若 PM2 里已有同名应用但已停掉**，可先删再起：
+   ```bash
+   cd /www/wwwroot/next.sunyas.com
+   pm2 delete next-sunyas 2>/dev/null || true
+   pm2 start server.js --name next-sunyas
+   pm2 save
+   ```
+3. **确认 3000 已监听**：
+   ```bash
+   pm2 list
+   lsof -i:3000
+   curl -s http://127.0.0.1:3000 | head -5
+   ```
+   若 `pm2 list` 里 next-sunyas 为 online 且 `curl` 有正常 HTML，则 Nginx 再访问应恢复正常。
+
+若应用反复退出，可查看 `pm2 logs next-sunyas` 或 `pm2 show next-sunyas` 排查启动错误（如缺少依赖、端口被占、路径错误等）。
+
+---
 
 ## 相关排查
 
